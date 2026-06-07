@@ -21,6 +21,18 @@ pub trait Backend: Send + Sync + 'static {
     fn has_locale(&self, locale: &str) -> bool;
 }
 
+/// Trait for backends that support runtime reloading (hot-reload).
+///
+/// Used by [`crate::HotReloader`] to watch for file changes and reload
+/// translations in-place.
+pub trait Reloadable: Backend {
+    /// Reload a locale from raw content string.
+    fn reload_from_str(&self, locale: &str, content: &str) -> Result<(), crate::error::I18nError>;
+
+    /// The file extension this backend handles (e.g. `"toml"`, `"json"`).
+    fn file_extension(&self) -> &'static str;
+}
+
 /// The core i18n runtime.
 ///
 /// Holds a reference to a [`Backend`] and provides the translation API.

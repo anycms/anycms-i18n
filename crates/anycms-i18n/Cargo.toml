@@ -11,12 +11,15 @@ default = ["toml-backend", "init", "task-local"]
 
 # Backend implementations
 toml-backend = ["dep:toml"]
+json-backend = []
+yaml-backend = ["dep:serde_yaml"]
+all-backends = ["toml-backend", "json-backend", "yaml-backend"]
 
 # i18n!() init macro
 init = ["dep:anycms-i18n-macro"]
 
 # Runtime file loading (non-embedded)
-fs-loader = ["toml-backend"]
+fs-loader = []
 
 # Hot reload
 hot-reload = ["fs-loader", "dep:notify"]
@@ -36,6 +39,9 @@ parking_lot = { workspace = true }
 # Optional - TOML backend
 toml = { workspace = true, optional = true }
 
+# Optional - YAML backend
+serde_yaml = { version = "0.9", optional = true }
+
 # Optional - i18n!() macro
 anycms-i18n-macro = { workspace = true, optional = true }
 
@@ -44,6 +50,9 @@ notify = { version = "7", optional = true }
 
 # Optional - Task-local locale for async frameworks
 tokio = { version = "1", features = ["rt"], optional = true }
+
+[dev-dependencies]
+tempfile = "3"
 
 [[example]]
 name = "basic"
@@ -65,3 +74,18 @@ path = "examples/plural.rs"
 name = "hot_reload"
 path = "examples/hot_reload.rs"
 required-features = ["hot-reload"]
+
+[[example]]
+name = "json_basic"
+path = "examples/json_basic.rs"
+required-features = ["json-backend", "init"]
+
+[[example]]
+name = "yaml_basic"
+path = "examples/yaml_basic.rs"
+required-features = ["yaml-backend", "init"]
+
+[[example]]
+name = "mixed_formats"
+path = "examples/mixed_formats.rs"
+required-features = ["all-backends", "init"]

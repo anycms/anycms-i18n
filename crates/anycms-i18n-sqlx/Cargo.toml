@@ -1,0 +1,36 @@
+[package]
+name = "anycms-i18n-sqlx"
+version.workspace = true
+edition.workspace = true
+description = "SQLx database backend for anycms-i18n"
+license.workspace = true
+homepage.workspace = true
+
+[features]
+default = ["runtime-tokio-rustls"]
+postgres = ["sqlx/postgres"]
+mysql = ["sqlx/mysql"]
+sqlite = ["sqlx/sqlite"]
+runtime-tokio-rustls = ["sqlx/runtime-tokio-rustls"]
+
+[dependencies]
+anycms-i18n = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+dashmap = { workspace = true }
+sqlx = { version = "0.8", default-features = false, features = ["json"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+anycms-i18n = { workspace = true, features = ["toml-backend"] }
+
+[[example]]
+name = "postgres"
+path = "examples/postgres.rs"
+required-features = ["postgres"]
+
+[[example]]
+name = "sqlite"
+path = "examples/sqlite.rs"
+required-features = ["sqlite"]

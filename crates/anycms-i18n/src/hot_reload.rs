@@ -1,7 +1,8 @@
 //! Hot-reload support for translation files.
 //!
-//! Watches a locale directory for `.toml` file changes and reloads
+//! Watches a locale directory for file changes and reloads
 //! translations in-place without restarting the application.
+//! Works with any backend that implements [`Reloadable`].
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -11,14 +12,17 @@ use std::time::Duration;
 
 use notify::{Config, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 
-use crate::backend::TomlBackend;
+use crate::core::Reloadable;
 use crate::error::I18nError;
 
-/// Watches a locale directory for `.toml` file changes and hot-reloads
-/// translations into the given [`TomlBackend`].
+/// Watches a locale directory for file changes and hot-reloads
+/// translations into the given [`Reloadable`] backend.
 ///
-/// Since `TomlBackend` uses `DashMap` internally, translations are
+/// Since backends typically use `DashMap` internally, translations are
 /// updated concurrently — no restart or rebuild needed.
+///
+/// The file extension to watch is determined by calling
+/// [`Reloadable::file_extension`] on the backend.
 ///
 /// Dropping the `HotReloader` stops the file watcher.
 ///
@@ -51,12 +55,12 @@ impl std::fmt::Debug for HotReloader {
 impl HotReloader {
     /// Start watching a directory for translation file changes.
     ///
-    /// The `backend` must be the same `Arc<TomlBackend>` passed to
+    /// The `backend` must be the same `Arc<dyn Reloadable>` passed to
     /// [`I18nBuilder::add_backend`](crate::I18nBuilder::add_backend).
     /// When files change, translations are reloaded in-place.
     pub fn watch(
         dir: impl AsRef<Path>,
-        backend: Arc<TomlBackend>,
+        backend: Arc<dyn Reloadable>,
     ) -> Result<Self, I18nError> {
         let dir = dir.as_ref().canonicalize().map_err(|e| I18nError::IoError {
             path: dir.as_ref().to_path_buf(),
@@ -72,6 +76,8 @@ impl HotReloader {
                 ),
             });
         }
+
+        let extension = backend.file_extension().to_string();
 
         let (tx, rx) = std::sync::mpsc::channel::<Event>();
 
@@ -98,16 +104,16 @@ impl HotReloader {
 
                 // Collect changed paths
                 let mut pending: HashSet<PathBuf> = HashSet::new();
-                collect_toml_paths(&event, &mut pending);
+                collect_paths(&event, &extension, &mut pending);
 
                 // Drain queued events (debounce window)
                 while let Ok(event) = rx.recv_timeout(Duration::from_millis(200)) {
-                    collect_toml_paths(&event, &mut pending);
+                    collect_paths(&event, &extension, &mut pending);
                 }
 
                 // Reload each changed file
                 for path in &pending {
-                    reload_file(&watch_dir, &backend, path);
+                    reload_file(&watch_dir, &*backend, path);
                 }
             }
         });
@@ -119,8 +125,8 @@ impl HotReloader {
     }
 }
 
-/// Collect `.toml` file paths from a notify event.
-fn collect_toml_paths(event: &Event, out: &mut HashSet<PathBuf>) {
+/// Collect file paths matching the expected extension from a notify event.
+fn collect_paths(event: &Event, extension: &str, out: &mut HashSet<PathBuf>) {
     let relevant = matches!(
         event.kind,
         EventKind::Create(_) | EventKind::Modify(_) | EventKind::Remove(_)
@@ -130,14 +136,14 @@ fn collect_toml_paths(event: &Event, out: &mut HashSet<PathBuf>) {
     }
 
     for path in &event.paths {
-        if path.extension().and_then(|e| e.to_str()) == Some("toml") {
+        if path.extension().and_then(|e| e.to_str()) == Some(extension) {
             out.insert(path.clone());
         }
     }
 }
 
 /// Reload a single locale file into the backend.
-fn reload_file(dir: &Path, backend: &TomlBackend, path: &Path) {
+fn reload_file(dir: &Path, backend: &dyn Reloadable, path: &Path) {
     let locale = path
         .file_stem()
         .and_then(|s| s.to_str())
@@ -149,7 +155,7 @@ fn reload_file(dir: &Path, backend: &TomlBackend, path: &Path) {
     }
 
     match std::fs::read_to_string(path) {
-        Ok(content) => match backend.add_locale_from_str(locale, &content) {
+        Ok(content) => match backend.reload_from_str(locale, &content) {
             Ok(()) => tracing::info!(locale, path = %path.display(), "hot-reloaded locale"),
             Err(e) => {
                 tracing::warn!(locale, error = %e, "failed to parse locale file on hot-reload")

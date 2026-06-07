@@ -34,20 +34,34 @@ mod backend;
 mod builder;
 mod core;
 mod error;
+mod flat_backend;
 mod interpolate;
 mod locale;
 mod macros;
 mod plural;
 
+#[cfg(feature = "json-backend")]
+mod json_backend;
+
+#[cfg(feature = "yaml-backend")]
+mod yaml_backend;
+
 // ---- public API ----
 
 pub use backend::{ChainedBackend, TomlBackend};
 pub use builder::I18nBuilder;
-pub use core::{Backend, I18n};
+pub use core::{Backend, I18n, Reloadable};
 pub use error::I18nError;
+pub use flat_backend::FlatBackend;
 pub use interpolate::interpolate;
 pub use locale::{negotiate_locale, Locale};
 pub use plural::{plural_category, PluralCategory};
+
+#[cfg(feature = "json-backend")]
+pub use json_backend::JsonBackend;
+
+#[cfg(feature = "yaml-backend")]
+pub use yaml_backend::YamlBackend;
 
 // Note: `t!` and `__t_inner!` are #[macro_export] and automatically at crate root.
 // No explicit re-export needed.

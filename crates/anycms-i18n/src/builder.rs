@@ -2,7 +2,6 @@
 
 use std::sync::Arc;
 
-use crate::backend::TomlBackend;
 use crate::core::{Backend, I18n};
 use crate::error::I18nError;
 
@@ -57,20 +56,61 @@ impl I18nBuilder {
         self
     }
 
-    /// Add compile-time-embedded translations as a [`TomlBackend`].
+    // ---- TOML backend (feature-gated) ----
+
+    /// Add compile-time-embedded TOML translations.
     ///
     /// Can be called multiple times; each call adds a new backend to the chain.
+    #[cfg(feature = "toml-backend")]
     pub fn embedded_translations(self, pairs: &[(&str, &str)]) -> Result<Self, I18nError> {
-        let backend = TomlBackend::from_embedded(pairs)?;
+        let backend = crate::backend::TomlBackend::from_embedded(pairs)?;
         Ok(self.add_backend(Arc::new(backend)))
     }
 
-    /// Add translations from a directory (requires `fs-loader` feature).
-    #[cfg(feature = "fs-loader")]
+    /// Add TOML translations from a directory (requires `fs-loader` + `toml-backend` features).
+    #[cfg(all(feature = "fs-loader", feature = "toml-backend"))]
     pub fn translations_from_dir(self, path: impl AsRef<std::path::Path>) -> Result<Self, I18nError> {
-        let backend = TomlBackend::from_dir(path)?;
+        let backend = crate::backend::TomlBackend::from_dir(path)?;
         Ok(self.add_backend(Arc::new(backend)))
     }
+
+    // ---- JSON backend (feature-gated) ----
+
+    /// Add compile-time-embedded JSON translations.
+    ///
+    /// Can be called multiple times; each call adds a new backend to the chain.
+    #[cfg(feature = "json-backend")]
+    pub fn json_translations(self, pairs: &[(&str, &str)]) -> Result<Self, I18nError> {
+        let backend = crate::json_backend::JsonBackend::from_embedded(pairs)?;
+        Ok(self.add_backend(Arc::new(backend)))
+    }
+
+    /// Add JSON translations from a directory (requires `fs-loader` + `json-backend` features).
+    #[cfg(all(feature = "fs-loader", feature = "json-backend"))]
+    pub fn json_from_dir(self, path: impl AsRef<std::path::Path>) -> Result<Self, I18nError> {
+        let backend = crate::json_backend::JsonBackend::from_dir(path)?;
+        Ok(self.add_backend(Arc::new(backend)))
+    }
+
+    // ---- YAML backend (feature-gated) ----
+
+    /// Add compile-time-embedded YAML translations.
+    ///
+    /// Can be called multiple times; each call adds a new backend to the chain.
+    #[cfg(feature = "yaml-backend")]
+    pub fn yaml_translations(self, pairs: &[(&str, &str)]) -> Result<Self, I18nError> {
+        let backend = crate::yaml_backend::YamlBackend::from_embedded(pairs)?;
+        Ok(self.add_backend(Arc::new(backend)))
+    }
+
+    /// Add YAML translations from a directory (requires `fs-loader` + `yaml-backend` features).
+    #[cfg(all(feature = "fs-loader", feature = "yaml-backend"))]
+    pub fn yaml_from_dir(self, path: impl AsRef<std::path::Path>) -> Result<Self, I18nError> {
+        let backend = crate::yaml_backend::YamlBackend::from_dir(path)?;
+        Ok(self.add_backend(Arc::new(backend)))
+    }
+
+    // ---- Generic ----
 
     /// Add a custom [`Backend`] implementation.
     pub fn add_backend(mut self, backend: Arc<dyn Backend>) -> Self {

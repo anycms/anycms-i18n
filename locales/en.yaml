@@ -1,0 +1,28 @@
+app:
+  title: Anycms
+  description: A modern CMS built with Rust
+
+welcome: "Welcome to Anycms!"
+greeting: "Hello, %{name}!"
+
+errors:
+  not_found: "Page not found"
+  unauthorized: "Please login first"
+  forbidden: "Access denied"
+  validation: "Validation failed: %{field}"
+
+navigation:
+  home: Home
+  about: About
+  contact: Contact Us
+
+items:
+  zero: "No items"
+  one: "%{count} item"
+  other: "%{count} items"
+
+notifications:
+  messages:
+    zero: "No new messages"
+    one: "You have %{count} new message"
+    other: "You have %{count} new messages"

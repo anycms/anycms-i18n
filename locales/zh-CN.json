@@ -1,0 +1,23 @@
+{
+  "app.title": "Anycms",
+  "app.description": "基于 Rust 构建的现代化 CMS",
+  "welcome": "欢迎使用 Anycms！",
+  "greeting": "你好，%{name}！",
+  "errors": {
+    "not_found": "页面未找到",
+    "unauthorized": "请先登录",
+    "forbidden": "访问被拒绝",
+    "validation": "验证失败：%{field}"
+  },
+  "navigation": {
+    "home": "首页",
+    "about": "关于",
+    "contact": "联系我们"
+  },
+  "items": {
+    "other": "%{count} 个项目"
+  },
+  "notifications": {
+    "messages.other": "您有 %{count} 条新消息"
+  }
+}

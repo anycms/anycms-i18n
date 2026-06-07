@@ -17,12 +17,35 @@ pub enum I18nError {
     },
 
     /// Failed to parse TOML translation file
+    #[cfg(feature = "toml-backend")]
     #[error("failed to parse TOML for locale '{locale}': {source}")]
     TomlParseError {
         locale: String,
         #[source]
         source: toml::de::Error,
     },
+
+    /// Failed to parse JSON translation file
+    #[cfg(feature = "json-backend")]
+    #[error("failed to parse JSON for locale '{locale}': {source}")]
+    JsonParseError {
+        locale: String,
+        #[source]
+        source: serde_json::Error,
+    },
+
+    /// Failed to parse YAML translation file
+    #[cfg(feature = "yaml-backend")]
+    #[error("failed to parse YAML for locale '{locale}': {source}")]
+    YamlParseError {
+        locale: String,
+        #[source]
+        source: serde_yaml::Error,
+    },
+
+    /// Database error
+    #[error("database error: {0}")]
+    DatabaseError(String),
 
     /// Failed to read translation file from disk
     #[error("failed to read translation file: {path}")]
