@@ -1,3 +1,30 @@
+# Changelog
+
+All notable changes to the anycms-i18n workspace (core, macro, axum, actix) are documented here.
+
+## [0.2.2] - 2026-06-07
+
+### 🚀 Features
+
+- Implement hot-reload support and upgrade i18n! macro
+- Add JSON/YAML backends, SQLx database backend, and generic hot-reload
+
+### 🐛 Bug Fixes
+
+- Add registry = r404 to internal crate dependencies
+- Add -l flag to git-cliff --prepend in release hook
+- Resolve git-cliff CWD issue in pre-release-hook
+
+### 📚 Documentation
+
+- Update CHANGELOG.md with 0.1.0 release notes
+- Update README, remove config feature references
+
+### ⚙️ Miscellaneous Tasks
+
+- Track per-crate CHANGELOGs
+- Consolidate sub-crate CHANGELOGs into root CHANGELOG.md
+- Bump workspace version to 0.2.0
 ## [0.1.1] - 2026-06-07
 
 ### 🚀 Features
