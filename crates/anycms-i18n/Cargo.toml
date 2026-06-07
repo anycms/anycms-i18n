@@ -60,3 +60,8 @@ path = "examples/fallback.rs"
 [[example]]
 name = "plural"
 path = "examples/plural.rs"
+
+[[example]]
+name = "hot_reload"
+path = "examples/hot_reload.rs"
+required-features = ["hot-reload"]

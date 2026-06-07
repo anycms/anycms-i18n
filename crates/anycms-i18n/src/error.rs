@@ -50,4 +50,8 @@ pub enum I18nError {
     /// Builder error
     #[error("builder error: {0}")]
     BuilderError(String),
+
+    /// File watcher error (hot-reload)
+    #[error("file watcher error: {0}")]
+    WatchError(String),
 }

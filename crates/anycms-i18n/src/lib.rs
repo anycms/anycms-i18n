@@ -56,6 +56,12 @@ pub use plural::{plural_category, PluralCategory};
 #[cfg(feature = "init")]
 pub use anycms_i18n_macro::i18n;
 
+// Hot-reload support (feature-gated)
+#[cfg(feature = "hot-reload")]
+mod hot_reload;
+#[cfg(feature = "hot-reload")]
+pub use hot_reload::HotReloader;
+
 // ---- Global I18n instance ----
 
 use std::sync::OnceLock;
@@ -74,6 +80,20 @@ pub fn set_global(i18n: I18n) -> Result<(), I18n> {
 /// Returns `None` if [`set_global`] has not been called.
 pub fn global() -> Option<&'static I18n> {
     GLOBAL_I18N.get()
+}
+
+// ---- Global HotReloader (kept alive so watcher doesn't stop) ----
+
+#[cfg(feature = "hot-reload")]
+static GLOBAL_RELOADER: OnceLock<HotReloader> = OnceLock::new();
+
+/// Store the [`HotReloader`] globally so it stays alive.
+///
+/// Called automatically by `i18n!("...", hot_reload)`.
+/// Can only be called once; returns `Err` if already set.
+#[cfg(feature = "hot-reload")]
+pub fn set_global_reloader(reloader: HotReloader) -> Result<(), HotReloader> {
+    GLOBAL_RELOADER.set(reloader)
 }
 
 // ---- Task-local locale (for async web frameworks) ----

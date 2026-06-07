@@ -1,6 +1,8 @@
 //! Translation backend implementations.
 
 use std::collections::HashMap;
+#[cfg(feature = "fs-loader")]
+use std::path::Path;
 use std::sync::Arc;
 
 use dashmap::DashMap;
