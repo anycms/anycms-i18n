@@ -1,0 +1,22 @@
+[package]
+name = "anycms-i18n-axum"
+version.workspace = true
+edition.workspace = true
+description = "Axum integration for anycms-i18n"
+license.workspace = true
+homepage.workspace = true
+
+[dependencies]
+anycms-i18n = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+futures = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+anycms-i18n = { workspace = true, features = ["init"] }
+
+[[example]]
+name = "axum_server"
+path = "examples/axum_server.rs"

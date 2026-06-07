@@ -1,6 +1,31 @@
-[package]
-name = "anycms-i18n"
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
 version = "0.1.0"
+license = "MIT"
+homepage = "https://anycms.org"
 edition = "2024"
 
-[dependencies]
+[workspace.dependencies]
+# Core
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2"
+toml = "0.8"
+tracing = "0.1"
+dashmap = "6"
+parking_lot = "0.12"
+
+# Internal crates
+anycms-i18n = { version = "0.1.0", path = "crates/anycms-i18n" }
+anycms-i18n-macro = { version = "0.1.0", path = "crates/anycms-i18n-macro" }
+
+# Optional - Actix
+actix-web = "4"
+
+# Optional - Axum
+axum = "0.8"
+tower = "0.5"
+futures = "0.3"

@@ -1,0 +1,19 @@
+app.title = "Anycms"
+app.description = "Rust で構築されたモダン CMS"
+
+welcome = "Anycms へようこそ！"
+greeting = "こんにちは、%{name}さん！"
+
+[errors]
+not_found = "ページが見つかりません"
+unauthorized = "ログインしてください"
+forbidden = "アクセスが拒否されました"
+validation = "検証に失敗しました：%{field}"
+
+[navigation]
+home = "ホーム"
+about = "概要"
+contact = "お問い合わせ"
+
+[items]
+other = "%{count} 個のアイテム"

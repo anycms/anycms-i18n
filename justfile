@@ -1,8 +1,9 @@
 
 publish:
-    cargo publish --registry r404 -p anycms-event-derive
-    cargo publish --registry r404 -p anycms-event
-    cargo publish --registry r404 -p anycms-event-redis
+    cargo publish --registry r404 -p anycms-i18n-macro
+    cargo publish --registry r404 -p anycms-i18n
+    cargo publish --registry r404 -p anycms-i18n-axum
+    cargo publish --registry r404 -p anycms-i18n-actix
 
 release-patch:
     cargo release patch --no-publish --execute

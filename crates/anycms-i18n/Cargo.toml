@@ -1,0 +1,62 @@
+[package]
+name = "anycms-i18n"
+version.workspace = true
+edition.workspace = true
+description = "Internationalization support for the anycms-rs ecosystem"
+license.workspace = true
+homepage.workspace = true
+
+[features]
+default = ["toml-backend", "init", "task-local"]
+
+# Backend implementations
+toml-backend = ["dep:toml"]
+
+# i18n!() init macro
+init = ["dep:anycms-i18n-macro"]
+
+# Runtime file loading (non-embedded)
+fs-loader = ["toml-backend"]
+
+# Hot reload
+hot-reload = ["fs-loader", "dep:notify"]
+
+# Task-local locale (for async frameworks — t!() auto-detects request locale)
+task-local = ["dep:tokio"]
+
+[dependencies]
+# Core
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+dashmap = { workspace = true }
+parking_lot = { workspace = true }
+
+# Optional - TOML backend
+toml = { workspace = true, optional = true }
+
+# Optional - i18n!() macro
+anycms-i18n-macro = { workspace = true, optional = true }
+
+# Optional - Hot reload
+notify = { version = "7", optional = true }
+
+# Optional - Task-local locale for async frameworks
+tokio = { version = "1", features = ["rt"], optional = true }
+
+[[example]]
+name = "basic"
+path = "examples/basic.rs"
+
+[[example]]
+name = "builder"
+path = "examples/builder.rs"
+
+[[example]]
+name = "fallback"
+path = "examples/fallback.rs"
+
+[[example]]
+name = "plural"
+path = "examples/plural.rs"

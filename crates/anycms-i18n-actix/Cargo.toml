@@ -1,0 +1,20 @@
+[package]
+name = "anycms-i18n-actix"
+version.workspace = true
+edition.workspace = true
+description = "Actix-web integration for anycms-i18n"
+license.workspace = true
+homepage.workspace = true
+
+[dependencies]
+anycms-i18n = { workspace = true, features = ["task-local"] }
+actix-web = { workspace = true }
+futures = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+anycms-i18n = { workspace = true, features = ["init", "task-local"] }
+
+[[example]]
+name = "actix_server"
