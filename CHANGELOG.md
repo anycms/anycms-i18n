@@ -1,3 +1,16 @@
+## [0.1.1] - 2026-06-07
+
+### 🚀 Features
+
+- **anycms-i18n**: Add `TomlBackend` with hot-reload support (`watch` feature), `ChainedBackend` for composable translation sources
+- **anycms-i18n-macro**: `i18n!` and `t!` proc-macros for compile-time init and runtime translation
+- **anycms-i18n-axum**: Axum `Locale` extractor with Accept-Language negotiation
+- **anycms-i18n-actix**: Actix-web `LocaleExtractor` with Accept-Language negotiation
+
+### 🚜 Refactor
+
+- Remove `config` feature and `I18nConfig`; simplify to pure builder API
+
 ## [0.1.0] - 2025-06-07
 
 ### 🚀 Features
