@@ -1,4 +1,4 @@
 shared-version = true
 consolidate-commits = true
-pre-release-hook = ["git", "cliff", "--prepend", "CHANGELOG.md", "-l", "--tag", "{{version}}"]
+pre-release-hook = ["sh", "-c", "cd \"$WORKSPACE_ROOT\" && grep -q \"\\[$1\\]\" CHANGELOG.md || git cliff --prepend CHANGELOG.md -u --tag \"$1\"", "sh", "{{version}}"]
 publish = false
