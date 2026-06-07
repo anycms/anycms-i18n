@@ -14,9 +14,9 @@ A lightweight, TOML-based i18n library for Rust with compile-time translation em
 - **`%{name}` interpolation** — variable substitution in translation strings
 - **Backend trait** — plug in custom translation sources (database, HTTP, etc.)
 - **ChainedBackend** — stack multiple backends with priority (e.g. DB overrides > files)
+- **`i18n!()` macro** — one-line compile-time initialization
 - **Actix-web integration** — middleware + extractor + frontend API routes
 - **Axum integration** — Layer + extractor + frontend API routes
-- **anycms-config integration** — optional, behind `config` feature flag
 
 ## Quick Start
 
@@ -299,7 +299,8 @@ greeting = "Hello, %{name}!"
 | Feature | Default | Description |
 |---------|---------|-------------|
 | `toml-backend` | ✅ | TOML file translation backend |
-| `config` | ❌ | Integration with `anycms-config` |
+| `init` | ✅ | `i18n!()` proc macro for one-line initialization |
+| `task-local` | ✅ | Task-local locale support for async frameworks |
 | `fs-loader` | ❌ | Runtime file loading from directory |
 | `hot-reload` | ❌ | File watching + hot reload |
 
