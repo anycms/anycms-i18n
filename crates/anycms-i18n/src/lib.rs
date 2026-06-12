@@ -70,6 +70,10 @@ pub use yaml_backend::YamlBackend;
 #[cfg(feature = "init")]
 pub use anycms_i18n_macro::i18n;
 
+// embed_locales!() helper macro (feature-gated)
+#[cfg(feature = "init")]
+pub use anycms_i18n_macro::embed_locales;
+
 // Hot-reload support (feature-gated)
 #[cfg(feature = "hot-reload")]
 mod hot_reload;

@@ -68,6 +68,40 @@ impl FlatBackend {
             });
         }
 
+        self.load_dir_inner(dir, extension, parse_fn)
+    }
+
+    /// Like [`load_dir`], but returns `Ok(())` when the directory does not exist
+    /// instead of erroring. This enables the "compiled defaults + optional runtime
+    /// override" pattern: if the runtime directory is absent, translations fall
+    /// through to the compiled/embedded backend.
+    pub fn try_load_dir(
+        &self,
+        path: impl AsRef<Path>,
+        extension: &str,
+        parse_fn: &dyn Fn(&str, &str) -> Result<HashMap<String, String>, I18nError>,
+    ) -> Result<(), I18nError> {
+        let dir = path.as_ref();
+
+        if !dir.is_dir() {
+            tracing::debug!(
+                path = %dir.display(),
+                "locale directory not found, skipping runtime override"
+            );
+            return Ok(());
+        }
+
+        self.load_dir_inner(dir, extension, parse_fn)
+    }
+
+    /// Shared implementation used by both [`load_dir`] and [`try_load_dir`].
+    fn load_dir_inner(
+        &self,
+        dir: &Path,
+        extension: &str,
+        parse_fn: &dyn Fn(&str, &str) -> Result<HashMap<String, String>, I18nError>,
+    ) -> Result<(), I18nError> {
+
         for entry in std::fs::read_dir(dir).map_err(|e| I18nError::IoError {
             path: dir.to_path_buf(),
             source: e,
@@ -260,5 +294,45 @@ mod tests {
         assert_eq!(out.get("items.zero").unwrap(), "No items");
         assert_eq!(out.get("items.one").unwrap(), "One item");
         assert_eq!(out.get("items.other").unwrap(), "%{count} items");
+    }
+
+    #[test]
+    fn test_load_dir_errors_on_missing() {
+        let backend = FlatBackend::new();
+        let result = backend.load_dir("/no/such/directory", "toml", &|_locale, _content| {
+            Ok(HashMap::new())
+        });
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_try_load_dir_ok_on_missing() {
+        let backend = FlatBackend::new();
+        let result = backend.try_load_dir("/no/such/directory", "toml", &|_locale, _content| {
+            Ok(HashMap::new())
+        });
+        assert!(result.is_ok());
+        // Backend should be empty
+        assert!(backend.available_locales().is_empty());
+    }
+
+    #[test]
+    fn test_try_load_dir_loads_existing() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("en.toml"), r#"hello = "Hi""#).unwrap();
+
+        let backend = FlatBackend::new();
+        let result = backend.try_load_dir(dir.path(), "toml", &|_locale, content| {
+            let data: toml::map::Map<String, toml::Value> = toml::from_str(content).unwrap();
+            let mut out = HashMap::new();
+            for (k, v) in data {
+                if let toml::Value::String(s) = v {
+                    out.insert(k, s);
+                }
+            }
+            Ok(out)
+        });
+        assert!(result.is_ok());
+        assert_eq!(backend.get("en", "hello").unwrap(), "Hi");
     }
 }

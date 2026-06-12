@@ -74,6 +74,21 @@ impl I18nBuilder {
         Ok(self.add_backend(Arc::new(backend)))
     }
 
+    /// Like [`translations_from_dir`](Self::translations_from_dir), but returns
+    /// an empty backend when the directory does not exist instead of erroring.
+    ///
+    /// Intended for the "compiled defaults + optional runtime override" pattern:
+    /// call this *before* [`embedded_translations`](Self::embedded_translations)
+    /// so the runtime layer has higher priority.
+    #[cfg(all(feature = "fs-loader", feature = "toml-backend"))]
+    pub fn optional_translations_from_dir(
+        self,
+        path: impl AsRef<std::path::Path>,
+    ) -> Result<Self, I18nError> {
+        let backend = crate::backend::TomlBackend::try_from_dir(path)?;
+        Ok(self.add_backend(Arc::new(backend)))
+    }
+
     // ---- JSON backend (feature-gated) ----
 
     /// Add compile-time-embedded JSON translations.
@@ -92,6 +107,17 @@ impl I18nBuilder {
         Ok(self.add_backend(Arc::new(backend)))
     }
 
+    /// Like [`json_from_dir`](Self::json_from_dir), but returns an empty backend
+    /// when the directory does not exist instead of erroring.
+    #[cfg(all(feature = "fs-loader", feature = "json-backend"))]
+    pub fn optional_json_from_dir(
+        self,
+        path: impl AsRef<std::path::Path>,
+    ) -> Result<Self, I18nError> {
+        let backend = crate::json_backend::JsonBackend::try_from_dir(path)?;
+        Ok(self.add_backend(Arc::new(backend)))
+    }
+
     // ---- YAML backend (feature-gated) ----
 
     /// Add compile-time-embedded YAML translations.
@@ -107,6 +133,17 @@ impl I18nBuilder {
     #[cfg(all(feature = "fs-loader", feature = "yaml-backend"))]
     pub fn yaml_from_dir(self, path: impl AsRef<std::path::Path>) -> Result<Self, I18nError> {
         let backend = crate::yaml_backend::YamlBackend::from_dir(path)?;
+        Ok(self.add_backend(Arc::new(backend)))
+    }
+
+    /// Like [`yaml_from_dir`](Self::yaml_from_dir), but returns an empty backend
+    /// when the directory does not exist instead of erroring.
+    #[cfg(all(feature = "fs-loader", feature = "yaml-backend"))]
+    pub fn optional_yaml_from_dir(
+        self,
+        path: impl AsRef<std::path::Path>,
+    ) -> Result<Self, I18nError> {
+        let backend = crate::yaml_backend::YamlBackend::try_from_dir(path)?;
         Ok(self.add_backend(Arc::new(backend)))
     }
 

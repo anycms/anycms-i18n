@@ -84,6 +84,17 @@ impl JsonBackend {
         Ok(backend)
     }
 
+    /// Like [`from_dir`](Self::from_dir), but returns an empty backend when the
+    /// directory does not exist instead of erroring.
+    #[cfg(feature = "fs-loader")]
+    pub fn try_from_dir(path: impl AsRef<Path>) -> Result<Self, I18nError> {
+        let backend = Self::new();
+        backend
+            .inner
+            .try_load_dir(path, "json", &|locale, content| parse_json(locale, content))?;
+        Ok(backend)
+    }
+
     /// Parse a JSON string and merge it into the backend under the given locale.
     pub fn add_locale_from_str(&self, locale: &str, content: &str) -> Result<(), I18nError> {
         let messages = parse_json(locale, content)?;

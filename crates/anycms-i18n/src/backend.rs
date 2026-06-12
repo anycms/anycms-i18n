@@ -125,6 +125,20 @@ impl TomlBackend {
         Ok(backend)
     }
 
+    /// Like [`from_dir`](Self::from_dir), but returns an empty backend when the
+    /// directory does not exist instead of erroring.
+    ///
+    /// Use this when compiled/embedded translations serve as defaults and the
+    /// runtime directory is an optional override layer.
+    #[cfg(feature = "fs-loader")]
+    pub fn try_from_dir(path: impl AsRef<Path>) -> Result<Self, I18nError> {
+        let backend = Self::new();
+        backend
+            .inner
+            .try_load_dir(path, "toml", &|locale, content| parse_toml(locale, content))?;
+        Ok(backend)
+    }
+
     /// Parse a TOML string and merge it into the backend under the given locale.
     pub fn add_locale_from_str(&self, locale: &str, content: &str) -> Result<(), I18nError> {
         let messages = parse_toml(locale, content)?;
@@ -308,5 +322,60 @@ bye = "Goodbye""#).unwrap();
         assert_eq!(chained.get("en", "bye").unwrap(), "Goodbye");
         // both have the locale
         assert!(chained.has_locale("zh-CN"));
+    }
+
+    #[cfg(feature = "fs-loader")]
+    #[test]
+    fn test_try_from_dir_missing_directory() {
+        let backend = TomlBackend::try_from_dir("/no/such/i18n/dir").unwrap();
+        // Should succeed with an empty backend
+        assert!(backend.available_locales().is_empty());
+    }
+
+    #[cfg(feature = "fs-loader")]
+    #[test]
+    fn test_try_from_dir_existing_directory() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(
+            dir.path().join("en.toml"),
+            r#"hello = "Hi"
+bye = "Goodbye""#,
+        )
+        .unwrap();
+
+        let backend = TomlBackend::try_from_dir(dir.path()).unwrap();
+        assert_eq!(backend.get("en", "hello").unwrap(), "Hi");
+        assert_eq!(backend.get("en", "bye").unwrap(), "Goodbye");
+    }
+
+    #[cfg(feature = "fs-loader")]
+    #[test]
+    fn test_compiled_plus_optional_runtime_override() {
+        // Simulate: compiled defaults + optional runtime override
+        let compiled = {
+            let b = TomlBackend::new();
+            b.add_locale_from_str("en", r#"hello = "Hello"
+bye = "Goodbye"
+welcome = "Welcome""#)
+                .unwrap();
+            Arc::new(b) as Arc<dyn crate::core::Backend>
+        };
+
+        // Runtime dir overrides "hello" only, doesn't have "bye" or "welcome"
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("en.toml"), r#"hello = "Hi (overridden)""#).unwrap();
+
+        let runtime = TomlBackend::try_from_dir(dir.path()).unwrap();
+
+        let chained = ChainedBackend::new(vec![
+            Arc::new(runtime) as Arc<dyn crate::core::Backend>,
+            compiled,
+        ]);
+
+        // Runtime override wins for "hello"
+        assert_eq!(chained.get("en", "hello").unwrap(), "Hi (overridden)");
+        // Falls through to compiled for "bye" and "welcome"
+        assert_eq!(chained.get("en", "bye").unwrap(), "Goodbye");
+        assert_eq!(chained.get("en", "welcome").unwrap(), "Welcome");
     }
 }

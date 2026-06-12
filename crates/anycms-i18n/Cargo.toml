@@ -89,3 +89,18 @@ required-features = ["yaml-backend", "init"]
 name = "mixed_formats"
 path = "examples/mixed_formats.rs"
 required-features = ["all-backends", "init"]
+
+[[example]]
+name = "i18n_allow_override"
+path = "examples/i18n_allow_override.rs"
+required-features = ["init", "fs-loader"]
+
+[[example]]
+name = "builder_embed_locales"
+path = "examples/builder_embed_locales.rs"
+required-features = ["init", "fs-loader"]
+
+[[example]]
+name = "runtime_override"
+path = "examples/runtime_override.rs"
+required-features = ["init", "fs-loader"]
