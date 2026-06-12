@@ -1,37 +1,37 @@
 # anycms-i18n
 
-[English](README.en.md) | 中文
+English | [中文](README.md)
 
-[anycms-rs](https://github.com/anycms) 生态的国际化（i18n）支持库。
+Internationalization (i18n) support for the [anycms-rs](https://github.com/anycms) ecosystem.
 
-轻量级 Rust i18n 库，支持编译时翻译嵌入、locale 回退链、复数规则、运行时本地文件覆盖以及 Web 框架集成。支持 TOML、JSON、YAML 翻译格式。
+A lightweight Rust i18n library with compile-time translation embedding, locale fallback chains, plural rules, runtime file override, and web framework integrations. Supports TOML, JSON, and YAML translation formats.
 
-## 特性
+## Features
 
-- **多格式** — TOML、JSON、YAML 后端（可单独使用或混合使用）
-- **编译时嵌入** — 通过 `include_str!` 将翻译编入二进制，零运行时文件 I/O
-- **运行时覆盖** — 本地文件可覆盖编译时嵌入的翻译（类似 anycms-config 的模式）
-- **`t!()` 宏** — 支持指定 locale、插值、复数计数
-- **回退链** — `zh-Hans-CN` → `zh-CN` → `zh` → `en` 自动回退
-- **复数规则** — 内置英语、中文、日语、俄语、阿拉伯语等支持
-- **`%{name}` 插值** — 翻译字符串中的变量替换
-- **Backend trait** — 可插入自定义翻译源（数据库、HTTP 等）
-- **ChainedBackend** — 多后端优先级叠加（如 DB 覆盖 > 文件）
-- **`i18n!()` 宏** — 一行初始化
-- **`embed_locales!()` 宏** — 自动扫描目录编译嵌入，无需手动列举文件
-- **Actix-web 集成** — 中间件 + 提取器 + 前端 API 路由
-- **Axum 集成** — Layer + 提取器 + 前端 API 路由
+- **Multiple formats** — TOML, JSON, and YAML backends (use one or mix them)
+- **Compile-time embedding** — translations baked into the binary via `include_str!`, zero runtime file I/O
+- **Runtime override** — local files can override compiled translations (similar to anycms-config pattern)
+- **`t!()` macro** — ergonomic translation with locale override, interpolation, and plural count
+- **Fallback chains** — `zh-Hans-CN` → `zh-CN` → `zh` → `en` automatic fallback
+- **Plural rules** — English, Chinese, Japanese, Russian, Arabic and more out of the box
+- **`%{name}` interpolation** — variable substitution in translation strings
+- **Backend trait** — plug in custom translation sources (database, HTTP, etc.)
+- **ChainedBackend** — stack multiple backends with priority (e.g. DB overrides > files)
+- **`i18n!()` macro** — one-line compile-time initialization
+- **`embed_locales!()` macro** — auto-scan directory for compile-time embedding, no manual file listing
+- **Actix-web integration** — middleware + extractor + frontend API routes
+- **Axum integration** — Layer + extractor + frontend API routes
 
-## 快速开始
+## Quick Start
 
-添加到 `Cargo.toml`：
+Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
 anycms-i18n = "0.2"
 ```
 
-创建翻译文件：
+Create translation files:
 
 ```toml
 # locales/en.toml
@@ -59,15 +59,15 @@ not_found = "页面未找到"
 other = "%{count} 个项目"
 ```
 
-### 方式一：`i18n!` 宏（推荐）
+### Option 1: `i18n!` Macro (Recommended)
 
-最简单的方式，一行搞定：
+The simplest way — one line does it all:
 
 ```rust
 use anycms_i18n::{i18n, t};
 
 fn main() {
-    // 自动扫描 locales/ 目录下所有 .toml 文件，编译时嵌入
+    // Auto-scans all .toml files in locales/ and embeds them at compile time
     i18n!("locales", default = "en", fallback = "en");
 
     assert_eq!(t!("welcome"), "Welcome to Anycms!");
@@ -77,9 +77,9 @@ fn main() {
 }
 ```
 
-### 方式二：Builder + `embed_locales!`
+### Option 2: Builder + `embed_locales!`
 
-需要更多控制时使用 Builder 模式，`embed_locales!` 自动扫描目录免去手动列举：
+Use the Builder pattern for more control. `embed_locales!` auto-scans the directory so you don't need to list files manually:
 
 ```rust
 use anycms_i18n::{embed_locales, I18nBuilder, set_global, t};
@@ -100,9 +100,9 @@ fn main() {
 }
 ```
 
-### 方式三：手动 Builder
+### Option 3: Manual Builder
 
-完全手动控制每个翻译文件：
+Full manual control over each translation file:
 
 ```rust
 use anycms_i18n::{I18nBuilder, set_global, t};
@@ -121,22 +121,22 @@ let i18n = I18nBuilder::new()
 set_global(i18n).unwrap();
 ```
 
-## 编译嵌入 + 运行时覆盖
+## Compile-time Embedding + Runtime Override
 
-类似 `anycms-config` 的模式：翻译编译进二进制作为默认值，运行时本地文件可覆盖部分 key，无需重新编译。
+Similar to the `anycms-config` pattern: translations are compiled into the binary as defaults, then runtime local files can override individual keys without rebuilding.
 
-### `i18n!` 宏模式
+### `i18n!` Macro Mode
 
 ```rust
 use anycms_i18n::{i18n, t};
 
-// 编译时嵌入 + 运行时覆盖
-// 如果运行时 locales/ 目录存在，其中的文件会覆盖编译默认值
-// 如果目录不存在，静默使用编译默认值
+// Compile-embed + runtime override
+// If the locales/ directory exists at runtime, those files override compiled defaults
+// If the directory is absent, compiled defaults are used silently
 i18n!("locales", default = "en", fallback = "en", allow_override);
 ```
 
-### Builder 模式
+### Builder Mode
 
 ```rust
 use anycms_i18n::{embed_locales, I18nBuilder};
@@ -144,41 +144,41 @@ use anycms_i18n::{embed_locales, I18nBuilder};
 let i18n = I18nBuilder::new()
     .default_locale("en")
     .fallback_locale("en")
-    // 1. 运行时本地文件（最高优先级，目录不存在不报错）
+    // 1. Runtime local files (highest priority, non-fatal if dir missing)
     .optional_translations_from_dir("locales")
     .unwrap()
-    // 2. 编译时嵌入（兜底）
+    // 2. Compile-time embedded (fallback)
     .embedded_translations(embed_locales!("locales"))
     .unwrap()
     .build()
     .unwrap();
 ```
 
-### 覆盖规则
+### Override Rules
 
-通过 `ChainedBackend` 实现优先级链：
+Priority is managed via `ChainedBackend`:
 
-| 优先级 | 来源 | 说明 |
-|--------|------|------|
-| 高 | 运行时本地文件 | 只需包含要覆盖的 key |
-| 低 | 编译时嵌入的翻译 | 作为默认值 |
+| Priority | Source | Description |
+|----------|--------|-------------|
+| High | Runtime local files | Only need to contain keys you want to override |
+| Low | Compile-time embedded | Serves as defaults |
 
 ```
-runtime locales/zh-CN.toml:     welcome = "运行时覆盖的欢迎词！"
+runtime locales/zh-CN.toml:     welcome = "Runtime overridden welcome!"
 compiled embedded zh-CN.toml:   welcome = "欢迎使用 Anycms！"
                                 errors.not_found = "页面未找到"
 
-→ t!("welcome")       → "运行时覆盖的欢迎词！"  ← 运行时覆盖
-→ t!("errors.not_found") → "页面未找到"         ← 编译默认值回退
+→ t!("welcome")          → "Runtime overridden welcome!"  ← runtime override
+→ t!("errors.not_found") → "页面未找到"                    ← compiled fallback
 ```
 
-## 翻译格式
+## Translation Formats
 
-anycms-i18n 支持三种翻译文件格式，通过 feature flag 启用。可单独使用也可混合使用。
+anycms-i18n supports three translation file formats, each enabled by a feature flag. You can use one format or mix multiple formats in the same application.
 
 ### JSON
 
-启用 `json-backend` feature，使用 `I18nBuilder::json_translations()`：
+Enable the `json-backend` feature and use `I18nBuilder::json_translations()`:
 
 ```toml
 [dependencies]
@@ -202,7 +202,7 @@ anycms-i18n = { version = "0.2", features = ["json-backend"] }
 
 ### YAML
 
-启用 `yaml-backend` feature，使用 `I18nBuilder::yaml_translations()`：
+Enable the `yaml-backend` feature and use `I18nBuilder::yaml_translations()`:
 
 ```toml
 [dependencies]
@@ -222,9 +222,9 @@ items:
   other: "%{count} items"
 ```
 
-### 混合格式
+### Mixed Formats
 
-启用 `all-backends` 同时使用 TOML、JSON、YAML。先添加的后端优先级更高：
+Enable the `all-backends` feature to use TOML, JSON, and YAML together. Backends added first have higher priority:
 
 ```toml
 [dependencies]
@@ -235,30 +235,30 @@ anycms-i18n = { version = "0.2", features = ["all-backends"] }
 let i18n = I18nBuilder::new()
     .default_locale("en")
     .fallback_locale("en")
-    // JSON 覆盖（最高优先级）
+    // JSON overrides (highest priority)
     .json_translations(&[("en", r#"{"welcome": "Hello from JSON!"}"#)]).unwrap()
-    // TOML 作为兜底
+    // TOML as fallback
     .embedded_translations(embed_locales!("locales")).unwrap()
     .build()
     .unwrap();
 
-// "welcome" 来自 JSON（高优先级）
+// "welcome" comes from JSON (higher priority)
 assert_eq!(t!("welcome"), "Hello from JSON!");
-// 其他 key 回退到 TOML
+// Other keys fall through to TOML
 assert_eq!(t!("greeting", name = "world"), "Hello, world!");
 ```
 
-## 数据库后端
+## Database Backend
 
-使用 `anycms-i18n-sqlx` 实现数据库驱动的翻译，支持 PostgreSQL、MySQL、SQLite：
+For database-driven translations, use the `anycms-i18n-sqlx` crate with PostgreSQL, MySQL, or SQLite:
 
 ```toml
 [dependencies]
 anycms-i18n = "0.2"
-anycms-i18n-sqlx = { version = "0.2", features = ["postgres"] }  # 或 "mysql"、"sqlite"
+anycms-i18n-sqlx = { version = "0.2", features = ["postgres"] }  # or "mysql", "sqlite"
 ```
 
-数据库表结构：
+Expected table schema:
 
 ```sql
 CREATE TABLE i18n_translations (
@@ -284,7 +284,7 @@ let i18n = I18nBuilder::new()
     .build()?;
 ```
 
-自定义表名/列名：
+Custom table/column names with `SqlxBackendBuilder`:
 
 ```rust
 use anycms_i18n_sqlx::SqlxBackendBuilder;
@@ -298,7 +298,7 @@ let backend = SqlxBackendBuilder::new()
     .await?;
 ```
 
-### SQLite（内存数据库，零配置）
+### SQLite (in-memory, zero setup)
 
 ```rust
 let pool = sqlx::SqlitePool::connect("sqlite::memory:").await?;
@@ -312,31 +312,31 @@ let i18n = I18nBuilder::new()
     .add_backend(backend.clone())
     .build()?;
 
-// 热重载：向数据库插入新行后刷新缓存
+// Hot reload: add rows to DB, then refresh cache
 backend.reload_sqlite(&pool).await?;
 ```
 
-## API 参考
+## API Reference
 
-### `t!()` 宏
+### `t!()` Macro
 
 ```rust
-t!("key")                                // 简单查找
-t!("key", locale = "zh-CN")              // 指定 locale
-t!("key", name = "value")                // 插值
-t!("key", count = 5)                     // 复数
-t!("key", locale = "zh-CN", count = 5)   // 组合使用
+t!("key")                                // Simple lookup
+t!("key", locale = "zh-CN")              // With locale override
+t!("key", name = "value")                // With interpolation
+t!("key", count = 5)                     // With plural
+t!("key", locale = "zh-CN", count = 5)   // Combined
 ```
 
-### `I18n` 方法
+### `I18n` Methods
 
 ```rust
 let i18n = /* ... */;
 
-i18n.t("welcome");                                    // 默认 locale
-i18n.t_with_locale("welcome", "zh-CN");               // 指定 locale
-i18n.t_with_args("greeting", "en", &[("name", "A")]); // 插值
-i18n.t_with_count("items", "en", 5, &[]);             // 复数
+i18n.t("welcome");                                    // Default locale
+i18n.t_with_locale("welcome", "zh-CN");               // Specific locale
+i18n.t_with_args("greeting", "en", &[("name", "A")]); // With interpolation
+i18n.t_with_count("items", "en", 5, &[]);             // With plural
 i18n.default_locale();                                // "en"
 i18n.available_locales();                             // ["en", "zh-CN"]
 ```
@@ -347,18 +347,18 @@ i18n.available_locales();                             // ["en", "zh-CN"]
 let i18n = I18nBuilder::new()
     .default_locale("en")
     .fallback_locale("en")
-    // 编译嵌入（自动扫描目录）
+    // Compile-time embedding (auto-scan directory)
     .embedded_translations(embed_locales!("locales"))?
-    // 或运行时覆盖（目录不存在不报错）
+    // Runtime override (non-fatal if dir missing)
     .optional_translations_from_dir("locales")?
-    // 或手动指定
+    // Manual embedding
     .embedded_translations(&[("en", "..."), ("zh-CN", "...")])?
-    // 自定义后端
+    // Custom backend
     .add_backend(my_custom_backend)
     .build()?;
 ```
 
-### Locale 回退
+### Locale Fallback
 
 ```rust
 use anycms_i18n::Locale;
@@ -368,7 +368,7 @@ let chain = locale.fallback_chain("en");
 // ["zh-Hans-CN", "zh-CN", "zh", "en"]
 ```
 
-### Accept-Language 协商
+### Accept-Language Negotiation
 
 ```rust
 use anycms_i18n::negotiate_locale;
@@ -377,7 +377,7 @@ let locale = negotiate_locale("zh-CN,en;q=0.9", &["en", "zh-CN", "ja"], "en");
 // "zh-CN"
 ```
 
-## Web 框架集成
+## Web Framework Integration
 
 ### Actix-web
 
@@ -410,7 +410,7 @@ async fn index(locale: LocaleExtractor) -> String {
 }
 ```
 
-**Locale 检测顺序：** 查询参数 `?lang=` → Cookie `locale` → `Accept-Language` 请求头 → 默认值。
+**Locale detection order:** query param `?lang=` → cookie `locale` → `Accept-Language` header → default.
 
 ### Axum
 
@@ -441,9 +441,9 @@ async fn index(locale: Locale) -> String {
 }
 ```
 
-## 自定义后端
+## Custom Backend
 
-实现 `Backend` trait 即可接入数据库或远程翻译源：
+Implement the `Backend` trait for database-driven or remote translations:
 
 ```rust
 use anycms_i18n::Backend;
@@ -452,7 +452,7 @@ struct DatabaseBackend { /* ... */ }
 
 impl Backend for DatabaseBackend {
     fn get(&self, locale: &str, key: &str) -> Option<String> {
-        // 查询数据库获取翻译
+        // Query database for translation
         todo!()
     }
 
@@ -466,7 +466,7 @@ impl Backend for DatabaseBackend {
 }
 ```
 
-配合 `ChainedBackend` 实现优先级叠加：
+Stack with `ChainedBackend` for priority:
 
 ```rust
 let db_backend: Arc<dyn Backend> = Arc::new(DatabaseBackend::new());
@@ -474,150 +474,150 @@ let file_backend: Arc<dyn Backend> = Arc::new(
     TomlBackend::from_embedded(embed_locales!("locales"))?
 );
 
-// DB 覆盖优先，文件作为兜底
+// DB overrides take priority, files serve as fallback
 let i18n = I18nBuilder::new()
     .add_backend(db_backend)
     .add_backend(file_backend)
     .build()?;
 ```
 
-## 复数规则
+## Plural Rules
 
-内置主要语系支持：
+Built-in support for major language families:
 
-| 语言 | 类别 | 示例 |
-|------|------|------|
+| Language | Categories | Example |
+|----------|-----------|---------|
 | English | one, other | 1 item / 2 items |
-| 中文 | other | 2 个项目 |
-| 日本語 | other | 2 個のアイテム |
-| Русский | one, few, many, other | 1 яблоко / 2 яблока / 5 яблок |
-| العربية | zero, one, two, few, many, other | 0 ملفات / 1 ملف / 2 ملفان |
+| Chinese | other | 2 个项目 |
+| Japanese | other | 2 個のアイテム |
+| Russian | one, few, many, other | 1 яблоко / 2 яблока / 5 яблок |
+| Arabic | zero, one, two, few, many, other | 0 ملفات / 1 ملف / 2 ملفان |
 
-## TOML 翻译文件格式
+## TOML Translation File Format
 
 ```toml
-# 简单键值对
+# Simple key-value
 welcome = "Welcome!"
 
-# 嵌套表 → 点分隔 key
+# Nested tables → dot-separated keys
 [errors]
 not_found = "Not found"          # key: errors.not_found
 
 [errors.auth]
 expired = "Session expired"      # key: errors.auth.expired
 
-# 复数形式（包含 zero/one/other 键的表）
+# Plural forms (table with zero/one/other keys)
 [items]
 zero = "No items"
 one = "%{count} item"
 other = "%{count} items"
 
-# 插值用 %{name}
+# Interpolation with %{name}
 greeting = "Hello, %{name}!"
 ```
 
 ## Feature Flags
 
-| Feature | 默认 | 说明 |
-|---------|------|------|
-| `toml-backend` | ✅ | TOML 翻译后端 |
-| `json-backend` | ❌ | JSON 翻译后端 |
-| `yaml-backend` | ❌ | YAML 翻译后端 |
-| `all-backends` | ❌ | 所有三种后端（TOML + JSON + YAML） |
-| `init` | ✅ | `i18n!()` / `embed_locales!()` 宏 |
-| `task-local` | ✅ | 异步框架的 task-local locale 支持 |
-| `fs-loader` | ❌ | 运行时从目录加载文件 |
-| `hot-reload` | ❌ | 文件监控 + 热重载 |
+| Feature | Default | Description |
+|---------|---------|-------------|
+| `toml-backend` | ✅ | TOML file translation backend |
+| `json-backend` | ❌ | JSON file translation backend |
+| `yaml-backend` | ❌ | YAML file translation backend |
+| `all-backends` | ❌ | All three backends (TOML + JSON + YAML) |
+| `init` | ✅ | `i18n!()` / `embed_locales!()` proc macros |
+| `task-local` | ✅ | Task-local locale support for async frameworks |
+| `fs-loader` | ❌ | Runtime file loading from directory |
+| `hot-reload` | ❌ | File watching + hot reload |
 
-## Crate 结构
+## Crate Structure
 
 ```
-anycms-i18n/                       # 工作区根目录
+anycms-i18n/                       # Workspace root
 ├── crates/
-│   ├── anycms-i18n/               # 核心库
+│   ├── anycms-i18n/               # Core library
 │   │   └── examples/
-│   │       ├── basic.rs           # 基础用法 + t!() 宏
+│   │       ├── basic.rs           # Basic usage + t!() macro
 │   │       ├── builder.rs         # I18nBuilder + ChainedBackend
-│   │       ├── fallback.rs        # Locale 回退链
-│   │       ├── plural.rs          # 复数规则
-│   │       ├── i18n_allow_override.rs   # 编译嵌入 + 运行时覆盖
-│   │       ├── builder_embed_locales.rs # embed_locales! 自动扫描
-│   │       ├── runtime_override.rs      # 运行时覆盖深度演示
-│   │       ├── json_basic.rs      # JSON 后端
-│   │       ├── yaml_basic.rs      # YAML 后端
-│   │       ├── mixed_formats.rs   # 混合 JSON + TOML
-│   │       └── hot_reload.rs      # 热重载文件监控
-│   ├── anycms-i18n-sqlx/         # SQLx 数据库后端
-│   ├── anycms-i18n-actix/         # Actix-web 集成
-│   └── anycms-i18n-axum/          # Axum 集成
-└── locales/                       # 示例翻译文件
+│   │       ├── fallback.rs        # Locale fallback chains
+│   │       ├── plural.rs          # Plural rules
+│   │       ├── i18n_allow_override.rs   # Compile-embed + runtime override
+│   │       ├── builder_embed_locales.rs # embed_locales! auto-scan
+│   │       ├── runtime_override.rs      # Runtime override deep-dive
+│   │       ├── json_basic.rs      # JSON backend
+│   │       ├── yaml_basic.rs      # YAML backend
+│   │       ├── mixed_formats.rs   # Mixed JSON + TOML
+│   │       └── hot_reload.rs      # Hot-reload file watching
+│   ├── anycms-i18n-sqlx/         # SQLx database backend
+│   ├── anycms-i18n-actix/         # Actix-web integration
+│   └── anycms-i18n-axum/          # Axum integration
+└── locales/                       # Example translation files
     ├── en.toml, en.json, en.yaml
     ├── zh-CN.toml, zh-CN.json, zh-CN.yaml
     └── ja.toml, ja.json, ja.yaml
 ```
 
-## 运行示例
+## Running Examples
 
 ```bash
-# 基础示例（TOML）
+# Core examples (TOML)
 cargo run -p anycms-i18n --example basic
 cargo run -p anycms-i18n --example builder
 cargo run -p anycms-i18n --example fallback
 cargo run -p anycms-i18n --example plural
 
-# 编译嵌入 + 运行时覆盖
+# Compile-embed + runtime override
 cargo run -p anycms-i18n --example i18n_allow_override --features "init,fs-loader"
 
-# embed_locales! 自动扫描
+# embed_locales! auto-scan
 cargo run -p anycms-i18n --example builder_embed_locales --features "init,fs-loader"
 
-# 运行时覆盖深度演示
+# Runtime override deep-dive
 cargo run -p anycms-i18n --example runtime_override --features "init,fs-loader"
 
-# JSON 后端
+# JSON backend
 cargo run -p anycms-i18n --example json_basic --features "json-backend,init"
 
-# YAML 后端
+# YAML backend
 cargo run -p anycms-i18n --example yaml_basic --features "yaml-backend,init"
 
-# 混合格式（JSON + TOML）
+# Mixed formats (JSON + TOML)
 cargo run -p anycms-i18n --example mixed_formats --features "all-backends,init"
 
-# 热重载（编辑 .toml 文件实时生效）
+# Hot reload (edit .toml files and see changes live)
 cargo run -p anycms-i18n --example hot_reload --features hot-reload
 
-# PostgreSQL 后端（需要运行中的 PostgreSQL）
+# PostgreSQL database backend (requires running PostgreSQL)
 cargo run -p anycms-i18n-sqlx --example postgres --features postgres
 
-# SQLite 后端（内存数据库，无需外部数据库）
+# SQLite database backend (in-memory, no external DB needed)
 cargo run -p anycms-i18n-sqlx --example sqlite --features sqlite
 
-# Actix-web 服务 (http://localhost:8080)
+# Actix-web server (http://localhost:8080)
 cargo run -p anycms-i18n-actix --example actix_server
 
-# Axum 服务 (http://localhost:8081)
+# Axum server (http://localhost:8081)
 cargo run -p anycms-i18n-axum --example axum_server
 ```
 
-测试 Web 服务：
+Test the web servers:
 
 ```bash
-# 默认 locale
+# Default locale
 curl http://localhost:8080/
 
-# 通过查询参数切换中文
+# Chinese via query param
 curl "http://localhost:8080/?lang=zh-CN"
 
-# 通过 Accept-Language 请求头
+# Chinese via Accept-Language header
 curl -H "Accept-Language: zh-CN" http://localhost:8080/greet/Alice
 
-# 列出可用 locale
+# List available locales
 curl http://localhost:8080/api/i18n/locales
 
-# 获取中文翻译
+# Get all Chinese translations
 curl http://localhost:8080/api/i18n/zh-CN
 ```
 
-## 许可证
+## License
 
 MIT
