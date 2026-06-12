@@ -223,7 +223,7 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
 name = "anycms-i18n"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "anycms-i18n-macro",
  "dashmap",
@@ -241,7 +241,7 @@ dependencies = [
 
 [[package]]
 name = "anycms-i18n-actix"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "actix-web",
  "anycms-i18n",
@@ -252,7 +252,7 @@ dependencies = [
 
 [[package]]
 name = "anycms-i18n-axum"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "anycms-i18n",
  "axum",
@@ -264,7 +264,7 @@ dependencies = [
 
 [[package]]
 name = "anycms-i18n-macro"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -273,7 +273,7 @@ dependencies = [
 
 [[package]]
 name = "anycms-i18n-sqlx"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "anycms-i18n",
  "dashmap",

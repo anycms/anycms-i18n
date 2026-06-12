@@ -2,6 +2,11 @@
 
 All notable changes to the anycms-i18n workspace (core, macro, axum, actix) are documented here.
 
+## [0.2.3] - 2026-06-12
+
+### 🚀 Features
+
+- Add optional runtime override and embed_locales! macro
 ## [0.2.2] - 2026-06-07
 
 ### 🚀 Features
