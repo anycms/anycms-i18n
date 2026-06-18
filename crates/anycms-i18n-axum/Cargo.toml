@@ -5,6 +5,10 @@ edition.workspace = true
 description = "Axum integration for anycms-i18n"
 license.workspace = true
 homepage.workspace = true
+repository.workspace = true
+documentation.workspace = true
+keywords = ["i18n", "axum", "internationalization", "localization"]
+categories = ["web-programming", "internationalization"]
 
 [dependencies]
 anycms-i18n = { workspace = true }

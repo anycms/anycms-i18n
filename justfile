@@ -1,9 +1,16 @@
 
 publish:
-    cargo publish --registry r404 -p anycms-i18n-macro
-    cargo publish --registry r404 -p anycms-i18n
-    cargo publish --registry r404 -p anycms-i18n-axum
-    cargo publish --registry r404 -p anycms-i18n-actix
+    cargo publish --registry crates-io -panycms-i18n-macro
+    cargo publish --registry crates-io -panycms-i18n
+    cargo publish --registry crates-io -panycms-i18n-sqlx
+    cargo publish --registry crates-io -panycms-i18n-axum
+    cargo publish --registry crates-io -panycms-i18n-actix
+
+test:
+    cargo test --workspace --all-features
+
+clippy:
+    cargo clippy --workspace --all-features -- -D warnings
 
 release-patch:
     cargo release patch --no-publish --execute

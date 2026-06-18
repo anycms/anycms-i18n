@@ -5,6 +5,10 @@ edition.workspace = true
 description = "SQLx database backend for anycms-i18n"
 license.workspace = true
 homepage.workspace = true
+repository.workspace = true
+documentation.workspace = true
+keywords = ["i18n", "sqlx", "database", "internationalization"]
+categories = ["database", "internationalization"]
 
 [features]
 default = ["runtime-tokio-rustls"]

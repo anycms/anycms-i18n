@@ -5,6 +5,10 @@ edition.workspace = true
 description = "Procedural macros for anycms-i18n"
 license.workspace = true
 homepage.workspace = true
+repository.workspace = true
+documentation.workspace = true
+keywords = ["i18n", "macro", "proc-macro", "internationalization"]
+categories = ["development-tools::procedural-macro-helpers", "internationalization"]
 
 [lib]
 proc-macro = true

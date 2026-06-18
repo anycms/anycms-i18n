@@ -5,6 +5,10 @@ edition.workspace = true
 description = "Internationalization support for the anycms-rs ecosystem"
 license.workspace = true
 homepage.workspace = true
+repository.workspace = true
+documentation.workspace = true
+keywords = ["i18n", "internationalization", "localization", "translation", "toml"]
+categories = ["internationalization", "localization"]
 
 [features]
 default = ["toml-backend", "init", "task-local"]

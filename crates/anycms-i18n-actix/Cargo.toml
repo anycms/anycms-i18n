@@ -5,6 +5,10 @@ edition.workspace = true
 description = "Actix-web integration for anycms-i18n"
 license.workspace = true
 homepage.workspace = true
+repository.workspace = true
+documentation.workspace = true
+keywords = ["i18n", "actix", "actix-web", "internationalization"]
+categories = ["web-programming", "internationalization"]
 
 [dependencies]
 anycms-i18n = { workspace = true, features = ["task-local"] }
