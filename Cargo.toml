@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/*"]
 
 [workspace.package]
-version = "0.2.3"
+version = "0.2.4"
 license = "MIT"
 homepage = "https://anycms.org"
 edition = "2024"
@@ -21,9 +21,9 @@ dashmap = "6"
 parking_lot = "0.12"
 
 # Internal crates
-anycms-i18n = { version = "0.2.3", path = "crates/anycms-i18n"}
-anycms-i18n-macro = { version = "0.2.3", path = "crates/anycms-i18n-macro" }
-anycms-i18n-sqlx = { version = "0.2.3", path = "crates/anycms-i18n-sqlx" }
+anycms-i18n = { version = "0.2.4", path = "crates/anycms-i18n"}
+anycms-i18n-macro = { version = "0.2.4", path = "crates/anycms-i18n-macro" }
+anycms-i18n-sqlx = { version = "0.2.4", path = "crates/anycms-i18n-sqlx" }
 
 # Optional - Actix
 actix-web = "4"

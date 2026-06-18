@@ -2,6 +2,19 @@
 
 All notable changes to the anycms-i18n workspace (core, macro, axum, actix) are documented here.
 
+## [0.2.4] - 2026-06-18
+
+### 🚜 Refactor
+
+- I18n correctness, Backend::dump, clippy+fmt, doctests
+
+### 📚 Documentation
+
+- Rewrite README in Chinese, add English README
+
+### ⚙️ Miscellaneous Tasks
+
+- Prepare crates.io release - metadata, justfile, CI
 ## [0.2.3] - 2026-06-12
 
 ### 🚀 Features
