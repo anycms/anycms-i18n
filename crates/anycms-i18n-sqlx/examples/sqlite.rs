@@ -52,14 +52,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ];
 
     for (locale, key, value) in &translations {
-        sqlx::query(
-            "INSERT INTO i18n_translations (locale, key, value) VALUES (?, ?, ?)",
-        )
-        .bind(locale)
-        .bind(key)
-        .bind(value)
-        .execute(&pool)
-        .await?;
+        sqlx::query("INSERT INTO i18n_translations (locale, key, value) VALUES (?, ?, ?)")
+            .bind(locale)
+            .bind(key)
+            .bind(value)
+            .execute(&pool)
+            .await?;
     }
 
     println!("Inserted {} translation rows.\n", translations.len());
@@ -78,7 +76,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ---- Translate ----
     println!("=== Simple Translations ===");
     println!("welcome (en):    {}", i18n.t_with_locale("welcome", "en"));
-    println!("welcome (zh-CN): {}", i18n.t_with_locale("welcome", "zh-CN"));
+    println!(
+        "welcome (zh-CN): {}",
+        i18n.t_with_locale("welcome", "zh-CN")
+    );
     println!("welcome (ja):    {}", i18n.t_with_locale("welcome", "ja"));
 
     println!("\n=== Nested Keys ===");

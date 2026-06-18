@@ -58,14 +58,14 @@ impl HotReloader {
     /// The `backend` must be the same `Arc<dyn Reloadable>` passed to
     /// [`I18nBuilder::add_backend`](crate::I18nBuilder::add_backend).
     /// When files change, translations are reloaded in-place.
-    pub fn watch(
-        dir: impl AsRef<Path>,
-        backend: Arc<dyn Reloadable>,
-    ) -> Result<Self, I18nError> {
-        let dir = dir.as_ref().canonicalize().map_err(|e| I18nError::IoError {
-            path: dir.as_ref().to_path_buf(),
-            source: e,
-        })?;
+    pub fn watch(dir: impl AsRef<Path>, backend: Arc<dyn Reloadable>) -> Result<Self, I18nError> {
+        let dir = dir
+            .as_ref()
+            .canonicalize()
+            .map_err(|e| I18nError::IoError {
+                path: dir.as_ref().to_path_buf(),
+                source: e,
+            })?;
 
         if !dir.is_dir() {
             return Err(I18nError::IoError {
@@ -81,16 +81,15 @@ impl HotReloader {
 
         let (tx, rx) = std::sync::mpsc::channel::<Event>();
 
-        let mut watcher =
-            RecommendedWatcher::new(
-                move |res: Result<Event, notify::Error>| {
-                    if let Ok(event) = res {
-                        let _ = tx.send(event);
-                    }
-                },
-                Config::default(),
-            )
-            .map_err(|e| I18nError::WatchError(e.to_string()))?;
+        let mut watcher = RecommendedWatcher::new(
+            move |res: Result<Event, notify::Error>| {
+                if let Ok(event) = res {
+                    let _ = tx.send(event);
+                }
+            },
+            Config::default(),
+        )
+        .map_err(|e| I18nError::WatchError(e.to_string()))?;
 
         watcher
             .watch(&dir, RecursiveMode::NonRecursive)
@@ -98,10 +97,8 @@ impl HotReloader {
 
         let watch_dir = dir;
         let handle = thread::spawn(move || {
-            loop {
-                // Wait for first event
-                let Ok(event) = rx.recv() else { break };
-
+            // Wait for first event; exit the loop when the channel is closed.
+            while let Ok(event) = rx.recv() {
                 // Collect changed paths
                 let mut pending: HashSet<PathBuf> = HashSet::new();
                 collect_paths(&event, &extension, &mut pending);

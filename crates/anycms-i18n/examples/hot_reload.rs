@@ -17,10 +17,7 @@ fn main() {
     println!("Edit any .toml file in locales/ and watch translations update.\n");
 
     loop {
-        println!(
-            "  t!(\"welcome\")               = {}",
-            t!("welcome"),
-        );
+        println!("  t!(\"welcome\")               = {}", t!("welcome"),);
         println!(
             "  t!(\"welcome\", locale=zh-CN)   = {}",
             t!("welcome", locale = "zh-CN"),

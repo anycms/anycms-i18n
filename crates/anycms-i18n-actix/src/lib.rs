@@ -36,12 +36,13 @@
 use std::sync::Arc;
 
 use actix_web::{
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    web, Error, HttpMessage, HttpRequest, FromRequest,
+    Error, FromRequest, HttpMessage, HttpRequest,
+    dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
+    web,
 };
-use futures::future::{ok, LocalBoxFuture, Ready};
+use futures::future::{LocalBoxFuture, Ready, ok};
 
-use anycms_i18n::{negotiate_locale, I18n};
+use anycms_i18n::{I18n, negotiate_locale};
 
 /// Actix-web middleware that detects the request locale and stores it in request extensions.
 ///
@@ -139,9 +140,7 @@ where
         let fut = self.service.call(req);
 
         // Wrap the request in CURRENT_LOCALE scope so t!() auto-detects locale
-        Box::pin(async move {
-            anycms_i18n::CURRENT_LOCALE.scope(locale, fut).await
-        })
+        Box::pin(async move { anycms_i18n::CURRENT_LOCALE.scope(locale, fut).await })
     }
 }
 
@@ -154,12 +153,15 @@ impl<S> I18nMiddlewareService<S> {
         if let Some(lang) = req.uri().query().and_then(|q| {
             q.split('&').find_map(|pair| {
                 let (k, v) = pair.split_once('=').unwrap_or((pair, ""));
-                if k == "lang" { Some(v.to_string()) } else { None }
+                if k == "lang" {
+                    Some(v.to_string())
+                } else {
+                    None
+                }
             })
-        }) {
-            if self.i18n.backend().has_locale(&lang) {
-                return lang;
-            }
+        }) && self.i18n.backend().has_locale(&lang)
+        {
+            return lang;
         }
 
         // 2. Cookie
@@ -226,10 +228,7 @@ impl FromRequest for LocaleExtractor {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
-        let resolved = req
-            .extensions()
-            .get::<ResolvedLocale>()
-            .cloned();
+        let resolved = req.extensions().get::<ResolvedLocale>().cloned();
 
         match resolved {
             Some(r) => ok(LocaleExtractor { resolved: r }),
@@ -274,11 +273,11 @@ pub trait I18nAppExt {
 impl<T> I18nAppExt for actix_web::App<T>
 where
     T: actix_web::dev::ServiceFactory<
-        actix_web::dev::ServiceRequest,
-        Config = (),
-        Error = Error,
-        InitError = (),
-    >,
+            actix_web::dev::ServiceRequest,
+            Config = (),
+            Error = Error,
+            InitError = (),
+        >,
 {
     fn i18n_routes(self, i18n: Arc<I18n>) -> Self {
         self.service(
@@ -302,21 +301,8 @@ async fn get_translations(
     path: web::Path<String>,
 ) -> web::Json<serde_json::Value> {
     let locale = path.into_inner();
-    let keys = [
-        "app.title", "app.description",
-        "welcome", "greeting",
-        "errors.not_found", "errors.unauthorized", "errors.forbidden",
-        "navigation.home", "navigation.about", "navigation.contact",
-        "items.zero", "items.one", "items.other",
-    ];
-
-    let mut translations = serde_json::Map::new();
-    for key in &keys {
-        if let Some(value) = i18n.backend().get(&locale, key) {
-            translations.insert(key.to_string(), serde_json::Value::String(value));
-        }
-    }
-
+    let translations = serde_json::to_value(i18n.backend().dump(&locale))
+        .unwrap_or_else(|_| serde_json::json!({}));
     web::Json(serde_json::json!({
         "locale": locale,
         "translations": translations,

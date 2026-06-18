@@ -8,7 +8,7 @@
 //!
 //! Run: `cargo run -p anycms-i18n --example fallback --features init`
 
-use anycms_i18n::{i18n, negotiate_locale, Locale, t};
+use anycms_i18n::{Locale, i18n, negotiate_locale, t};
 
 fn main() {
     i18n!("../../locales", default = "en", fallback = "en");
@@ -33,13 +33,25 @@ fn main() {
 
     // --- Translation fallback in action ---
     println!("\n=== Translation Fallback in Action ===");
-    println!("welcome (zh-Hans-CN, falls to zh-CN): {}", t!("welcome", locale = "zh-Hans-CN"));
-    println!("welcome (zh-TW, falls to en):          {}", t!("welcome", locale = "zh-TW"));
-    println!("welcome (fr, falls to en):              {}", t!("welcome", locale = "fr"));
+    println!(
+        "welcome (zh-Hans-CN, falls to zh-CN): {}",
+        t!("welcome", locale = "zh-Hans-CN")
+    );
+    println!(
+        "welcome (zh-TW, falls to en):          {}",
+        t!("welcome", locale = "zh-TW")
+    );
+    println!(
+        "welcome (fr, falls to en):              {}",
+        t!("welcome", locale = "fr")
+    );
 
     // --- Key-level fallback ---
     println!("\n=== Key-Level Fallback ===");
-    println!("items.zero (en):              {}", t!("items.zero", locale = "en"));
+    println!(
+        "items.zero (en):              {}",
+        t!("items.zero", locale = "en")
+    );
     println!("items.zero (zh-CN, falls en): {}", t!("items.zero"));
 
     // --- Accept-Language negotiation ---

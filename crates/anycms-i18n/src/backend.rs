@@ -45,9 +45,12 @@ fn flatten_toml(
             }
             toml::Value::Table(table) => {
                 // Check if this is a plural group (contains zero/one/two/few/many/other)
-                let is_plural = table
-                    .keys()
-                    .any(|k| matches!(k.as_str(), "zero" | "one" | "two" | "few" | "many" | "other"));
+                let is_plural = table.keys().any(|k| {
+                    matches!(
+                        k.as_str(),
+                        "zero" | "one" | "two" | "few" | "many" | "other"
+                    )
+                });
 
                 if is_plural {
                     // Store each plural form as "key.category"
@@ -164,6 +167,10 @@ impl crate::core::Backend for TomlBackend {
     fn has_locale(&self, locale: &str) -> bool {
         self.inner.has_locale(locale)
     }
+
+    fn dump(&self, locale: &str) -> HashMap<String, String> {
+        self.inner.dump(locale)
+    }
 }
 
 impl Reloadable for TomlBackend {
@@ -229,6 +236,19 @@ impl crate::core::Backend for ChainedBackend {
     fn has_locale(&self, locale: &str) -> bool {
         self.backends.iter().any(|b| b.has_locale(locale))
     }
+
+    fn dump(&self, locale: &str) -> HashMap<String, String> {
+        // `backends` is ordered [highest priority, ..., lowest priority].
+        // Merge from lowest priority to highest so that higher-priority keys
+        // overwrite lower-priority ones.
+        let mut merged = HashMap::new();
+        for backend in self.backends.iter().rev() {
+            for (k, v) in backend.dump(locale) {
+                merged.insert(k, v);
+            }
+        }
+        merged
+    }
 }
 
 #[cfg(test)]
@@ -283,19 +303,14 @@ other = "%{count} items"
 
         assert_eq!(backend.get("en", "items.zero").unwrap(), "No items");
         assert_eq!(backend.get("en", "items.one").unwrap(), "One item");
-        assert_eq!(
-            backend.get("en", "items.other").unwrap(),
-            "%{count} items"
-        );
+        assert_eq!(backend.get("en", "items.other").unwrap(), "%{count} items");
     }
 
     #[test]
     fn test_toml_backend_implements_reloadable() {
         let backend = TomlBackend::new();
         assert_eq!(backend.file_extension(), "toml");
-        backend
-            .reload_from_str("en", r#"hello = "Hi""#)
-            .unwrap();
+        backend.reload_from_str("en", r#"hello = "Hi""#).unwrap();
         assert_eq!(backend.get("en", "hello").unwrap(), "Hi");
     }
 
@@ -309,8 +324,12 @@ other = "%{count} items"
         };
         let b2 = {
             let b = TomlBackend::new();
-            b.add_locale_from_str("en", r#"hello = "Hello"
-bye = "Goodbye""#).unwrap();
+            b.add_locale_from_str(
+                "en",
+                r#"hello = "Hello"
+bye = "Goodbye""#,
+            )
+            .unwrap();
             Arc::new(b) as Arc<dyn crate::core::Backend>
         };
 
@@ -348,16 +367,70 @@ bye = "Goodbye""#,
         assert_eq!(backend.get("en", "bye").unwrap(), "Goodbye");
     }
 
+    #[test]
+    fn test_chained_backend_dump_priority() {
+        // b1 = highest priority; b2 = lowest priority.
+        let b1 = {
+            let b = TomlBackend::new();
+            b.add_locale_from_str("en", r#"a = "A1""#).unwrap();
+            Arc::new(b) as Arc<dyn crate::core::Backend>
+        };
+        let b2 = {
+            let b = TomlBackend::new();
+            b.add_locale_from_str(
+                "en",
+                r#"a = "A2"
+b = "B""#,
+            )
+            .unwrap();
+            Arc::new(b) as Arc<dyn crate::core::Backend>
+        };
+
+        let chained = ChainedBackend::new(vec![b1, b2]);
+        let dumped = chained.dump("en");
+
+        // High priority (b1) wins for "a"; low priority (b2) provides "b".
+        assert_eq!(dumped.get("a").unwrap(), "A1");
+        assert_eq!(dumped.get("b").unwrap(), "B");
+        assert_eq!(dumped.len(), 2);
+
+        // Missing locale -> empty map.
+        assert!(chained.dump("zh-CN").is_empty());
+    }
+
+    #[test]
+    fn test_toml_backend_dump() {
+        let backend = TomlBackend::new();
+        backend
+            .add_locale_from_str(
+                "en",
+                r#"hello = "Hi"
+bye = "Goodbye""#,
+            )
+            .unwrap();
+
+        let dumped = backend.dump("en");
+        assert_eq!(dumped.get("hello").unwrap(), "Hi");
+        assert_eq!(dumped.get("bye").unwrap(), "Goodbye");
+        assert_eq!(dumped.len(), 2);
+
+        // Missing locale -> empty map.
+        assert!(backend.dump("zh-CN").is_empty());
+    }
+
     #[cfg(feature = "fs-loader")]
     #[test]
     fn test_compiled_plus_optional_runtime_override() {
         // Simulate: compiled defaults + optional runtime override
         let compiled = {
             let b = TomlBackend::new();
-            b.add_locale_from_str("en", r#"hello = "Hello"
+            b.add_locale_from_str(
+                "en",
+                r#"hello = "Hello"
 bye = "Goodbye"
-welcome = "Welcome""#)
-                .unwrap();
+welcome = "Welcome""#,
+            )
+            .unwrap();
             Arc::new(b) as Arc<dyn crate::core::Backend>
         };
 

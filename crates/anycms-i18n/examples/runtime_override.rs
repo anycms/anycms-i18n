@@ -9,7 +9,7 @@
 //! Run:
 //!   cargo run -p anycms-i18n --example runtime_override --features "init,fs-loader"
 
-use anycms_i18n::{embed_locales, I18nBuilder};
+use anycms_i18n::{I18nBuilder, embed_locales};
 
 fn main() {
     println!("=== Compile + Runtime Override Demo ===\n");

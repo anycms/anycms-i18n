@@ -10,7 +10,7 @@ use std::path::Path;
 
 use crate::core::Reloadable;
 use crate::error::I18nError;
-use crate::flat_backend::{flatten_json, FlatBackend};
+use crate::flat_backend::{FlatBackend, flatten_json};
 
 // ---- JSON parsing ----
 
@@ -120,6 +120,10 @@ impl crate::core::Backend for JsonBackend {
     fn has_locale(&self, locale: &str) -> bool {
         self.inner.has_locale(locale)
     }
+
+    fn dump(&self, locale: &str) -> HashMap<String, String> {
+        self.inner.dump(locale)
+    }
 }
 
 impl Reloadable for JsonBackend {
@@ -185,19 +189,14 @@ mod tests {
 
         assert_eq!(backend.get("en", "items.zero").unwrap(), "No items");
         assert_eq!(backend.get("en", "items.one").unwrap(), "One item");
-        assert_eq!(
-            backend.get("en", "items.other").unwrap(),
-            "%{count} items"
-        );
+        assert_eq!(backend.get("en", "items.other").unwrap(), "%{count} items");
     }
 
     #[test]
     fn test_json_backend_implements_reloadable() {
         let backend = JsonBackend::new();
         assert_eq!(backend.file_extension(), "json");
-        backend
-            .reload_from_str("en", r#"{"hello": "Hi"}"#)
-            .unwrap();
+        backend.reload_from_str("en", r#"{"hello": "Hi"}"#).unwrap();
         assert_eq!(backend.get("en", "hello").unwrap(), "Hi");
     }
 

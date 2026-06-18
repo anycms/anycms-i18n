@@ -54,8 +54,8 @@ pub use core::{Backend, I18n, Reloadable};
 pub use error::I18nError;
 pub use flat_backend::FlatBackend;
 pub use interpolate::interpolate;
-pub use locale::{negotiate_locale, Locale};
-pub use plural::{plural_category, PluralCategory};
+pub use locale::{Locale, negotiate_locale};
+pub use plural::{PluralCategory, plural_category};
 
 #[cfg(feature = "json-backend")]
 pub use json_backend::JsonBackend;

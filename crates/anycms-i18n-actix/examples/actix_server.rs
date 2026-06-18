@@ -12,7 +12,7 @@
 
 use std::sync::Arc;
 
-use actix_web::{web, App, HttpServer, HttpResponse};
+use actix_web::{App, HttpResponse, HttpServer, web};
 use anycms_i18n::i18n;
 use anycms_i18n_actix::{I18nAppExt, I18nMiddleware, LocaleExtractor};
 
@@ -22,13 +22,15 @@ async fn index(locale: LocaleExtractor) -> HttpResponse {
     let welcome = anycms_i18n::t!("welcome");
     let locale_str = locale.as_str();
 
-    HttpResponse::Ok().content_type("text/plain; charset=utf-8").body(format!(
-        "[{locale_str}] {welcome}\n\nTry:\n  \
+    HttpResponse::Ok()
+        .content_type("text/plain; charset=utf-8")
+        .body(format!(
+            "[{locale_str}] {welcome}\n\nTry:\n  \
          curl http://localhost:8080/?lang=zh-CN\n  \
          curl http://localhost:8080/greet/Alice\n  \
          curl -H 'Accept-Language: zh-CN' http://localhost:8080/greet/Bob\n  \
          curl http://localhost:8080/api/i18n/locales"
-    ))
+        ))
 }
 
 /// Demonstrates: t!() macro with interpolation + auto locale.
@@ -37,9 +39,9 @@ async fn greet(locale: LocaleExtractor, path: web::Path<String>) -> HttpResponse
     let greeting = anycms_i18n::t!("greeting", name = &name);
     let locale_str = locale.as_str();
 
-    HttpResponse::Ok().content_type("text/plain; charset=utf-8").body(
-        format!("[{locale_str}] {greeting}"),
-    )
+    HttpResponse::Ok()
+        .content_type("text/plain; charset=utf-8")
+        .body(format!("[{locale_str}] {greeting}"))
 }
 
 #[tokio::main]

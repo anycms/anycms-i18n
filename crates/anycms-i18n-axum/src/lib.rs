@@ -38,7 +38,7 @@ use axum::{
 };
 use tower::{Layer, Service};
 
-use anycms_i18n::{negotiate_locale, I18n};
+use anycms_i18n::{I18n, negotiate_locale};
 
 // ---- I18nState ----
 
@@ -139,9 +139,7 @@ where
         let fut = self.inner.call(req);
 
         // Wrap the request in CURRENT_LOCALE scope so t!() auto-detects locale
-        Box::pin(async move {
-            anycms_i18n::CURRENT_LOCALE.scope(locale, fut).await
-        })
+        Box::pin(async move { anycms_i18n::CURRENT_LOCALE.scope(locale, fut).await })
     }
 }
 
@@ -152,15 +150,13 @@ impl<S> I18nMiddleware<S> {
 
         // 1. Query parameter
         if let Some(lang) = req.uri().query().and_then(|q| {
-            q.split('&')
-                .find_map(|pair| {
-                    let (k, v) = pair.split_once('=').unwrap_or((pair, ""));
-                    if k == "lang" { Some(v) } else { None }
-                })
-        }) {
-            if self.i18n.backend().has_locale(lang) {
-                return lang.to_string();
-            }
+            q.split('&').find_map(|pair| {
+                let (k, v) = pair.split_once('=').unwrap_or((pair, ""));
+                if k == "lang" { Some(v) } else { None }
+            })
+        }) && self.i18n.backend().has_locale(lang)
+        {
+            return lang.to_string();
         }
 
         // 2. Cookie
@@ -171,17 +167,12 @@ impl<S> I18nMiddleware<S> {
             .and_then(|cookies| {
                 cookies.split(';').find_map(|c| {
                     let c = c.trim();
-                    if let Some(v) = c.strip_prefix("locale=") {
-                        Some(v.to_string())
-                    } else {
-                        None
-                    }
+                    c.strip_prefix("locale=").map(|v| v.to_string())
                 })
             })
+            && self.i18n.backend().has_locale(&cookie)
         {
-            if self.i18n.backend().has_locale(&cookie) {
-                return cookie;
-            }
+            return cookie;
         }
 
         // 3. Accept-Language header
@@ -265,9 +256,11 @@ pub enum LocaleRejection {
 impl IntoResponse for LocaleRejection {
     fn into_response(self) -> Response {
         match self {
-            Self::MiddlewareNotRegistered => {
-                (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "i18n middleware not registered").into_response()
-            }
+            Self::MiddlewareNotRegistered => (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                "i18n middleware not registered",
+            )
+                .into_response(),
         }
     }
 }
@@ -316,10 +309,11 @@ impl I18nRouterExt for axum::Router<()> {
                 move |axum::extract::Path(locale): axum::extract::Path<String>| {
                     let i18n = i18n.clone();
                     async move {
-                        let _available = i18n.available_locales();
+                        let translations = serde_json::to_value(i18n.backend().dump(&locale))
+                            .unwrap_or_else(|_| serde_json::json!({}));
                         axum::Json(serde_json::json!({
                             "locale": &locale,
-                            "translations": format!("Translations for {locale}"),
+                            "translations": translations,
                         }))
                     }
                 }

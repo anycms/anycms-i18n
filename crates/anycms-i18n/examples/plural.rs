@@ -6,7 +6,7 @@
 //! - Russian: one/few/many/other (complex Slavic rules)
 //! - Arabic: zero/one/two/few/many/other (most complex)
 
-use anycms_i18n::{plural_category, set_global, I18nBuilder};
+use anycms_i18n::{I18nBuilder, plural_category, set_global};
 
 fn main() {
     // Build I18n with embedded locales. We include en, zh-CN, ja from files,
@@ -102,9 +102,18 @@ fn main() {
     // --- Using the t!() macro with count ---
     println!();
     println!("=== t!() Macro with Count ===");
-    println!("t!(\"items\", count=0)  => {}", anycms_i18n::t!("items", count = 0));
-    println!("t!(\"items\", count=1)  => {}", anycms_i18n::t!("items", count = 1));
-    println!("t!(\"items\", count=5)  => {}", anycms_i18n::t!("items", count = 5));
+    println!(
+        "t!(\"items\", count=0)  => {}",
+        anycms_i18n::t!("items", count = 0)
+    );
+    println!(
+        "t!(\"items\", count=1)  => {}",
+        anycms_i18n::t!("items", count = 1)
+    );
+    println!(
+        "t!(\"items\", count=5)  => {}",
+        anycms_i18n::t!("items", count = 5)
+    );
     println!(
         "t!(\"items\", locale=\"zh-CN\", count=5) => {}",
         anycms_i18n::t!("items", locale = "zh-CN", count = 5)

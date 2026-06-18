@@ -69,7 +69,10 @@ impl I18nBuilder {
 
     /// Add TOML translations from a directory (requires `fs-loader` + `toml-backend` features).
     #[cfg(all(feature = "fs-loader", feature = "toml-backend"))]
-    pub fn translations_from_dir(self, path: impl AsRef<std::path::Path>) -> Result<Self, I18nError> {
+    pub fn translations_from_dir(
+        self,
+        path: impl AsRef<std::path::Path>,
+    ) -> Result<Self, I18nError> {
         let backend = crate::backend::TomlBackend::from_dir(path)?;
         Ok(self.add_backend(Arc::new(backend)))
     }
@@ -166,6 +169,10 @@ impl I18nBuilder {
             _ => Arc::new(crate::backend::ChainedBackend::new(self.backends)),
         };
 
-        Ok(I18n::new(backend, self.default_locale, self.fallback_locale))
+        Ok(I18n::new(
+            backend,
+            self.default_locale,
+            self.fallback_locale,
+        ))
     }
 }

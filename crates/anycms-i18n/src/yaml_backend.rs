@@ -10,7 +10,7 @@ use std::path::Path;
 
 use crate::core::Reloadable;
 use crate::error::I18nError;
-use crate::flat_backend::{flatten_json, FlatBackend};
+use crate::flat_backend::{FlatBackend, flatten_json};
 
 // ---- YAML parsing ----
 
@@ -28,15 +28,14 @@ fn parse_yaml(locale: &str, content: &str) -> Result<HashMap<String, String>, I1
     // Convert serde_yaml::Value -> serde_json::Value so we can reuse flatten_json()
     // serde_yaml::Value and serde_json::Value both implement Serialize/Deserialize,
     // so we round-trip through a JSON string.
-    let json_value: serde_json::Value = serde_json::to_value(&yaml_value).map_err(|e| {
-        I18nError::YamlParseError {
+    let json_value: serde_json::Value =
+        serde_json::to_value(&yaml_value).map_err(|e| I18nError::YamlParseError {
             locale: locale.to_string(),
             source: serde_yaml::from_str::<serde_yaml::Value>(&format!(
                 "failed to convert YAML to JSON: {e}"
             ))
             .unwrap_err(),
-        }
-    })?;
+        })?;
 
     let mut messages = HashMap::new();
     flatten_json(&json_value, "", &mut messages);
@@ -133,6 +132,10 @@ impl crate::core::Backend for YamlBackend {
     fn has_locale(&self, locale: &str) -> bool {
         self.inner.has_locale(locale)
     }
+
+    fn dump(&self, locale: &str) -> HashMap<String, String> {
+        self.inner.dump(locale)
+    }
 }
 
 impl Reloadable for YamlBackend {
@@ -195,19 +198,14 @@ items:
 
         assert_eq!(backend.get("en", "items.zero").unwrap(), "No items");
         assert_eq!(backend.get("en", "items.one").unwrap(), "One item");
-        assert_eq!(
-            backend.get("en", "items.other").unwrap(),
-            "%{count} items"
-        );
+        assert_eq!(backend.get("en", "items.other").unwrap(), "%{count} items");
     }
 
     #[test]
     fn test_yaml_backend_implements_reloadable() {
         let backend = YamlBackend::new();
         assert_eq!(backend.file_extension(), "yaml");
-        backend
-            .reload_from_str("en", "hello: Hi")
-            .unwrap();
+        backend.reload_from_str("en", "hello: Hi").unwrap();
         assert_eq!(backend.get("en", "hello").unwrap(), "Hi");
     }
 
@@ -220,9 +218,7 @@ items:
         assert_eq!(backend.get("en", "greeting").unwrap(), "Hello");
 
         // Reload with new content — should replace the locale entirely
-        backend
-            .reload_from_str("en", "farewell: Goodbye")
-            .unwrap();
+        backend.reload_from_str("en", "farewell: Goodbye").unwrap();
         assert!(backend.get("en", "greeting").is_none());
         assert_eq!(backend.get("en", "farewell").unwrap(), "Goodbye");
     }

@@ -2,7 +2,7 @@
 //!
 //! Run: `cargo run -p anycms-i18n --example yaml_basic --features "yaml-backend,init"`
 
-use anycms_i18n::{set_global, t, I18nBuilder};
+use anycms_i18n::{I18nBuilder, set_global, t};
 
 fn main() {
     let i18n = I18nBuilder::new()
@@ -31,7 +31,10 @@ fn main() {
         "errors.not_found (en): {}",
         t!("errors.not_found", locale = "en")
     );
-    println!("navigation.home (ja):  {}", t!("navigation.home", locale = "ja"));
+    println!(
+        "navigation.home (ja):  {}",
+        t!("navigation.home", locale = "ja")
+    );
 
     // Interpolation
     println!("\n=== Interpolation ===");

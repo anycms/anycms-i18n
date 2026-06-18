@@ -16,14 +16,26 @@ fn main() {
     println!("welcome (ja):            {}", t!("welcome", locale = "ja"));
 
     println!("\n=== Nested Keys ===");
-    println!("errors.not_found (en):    {}", t!("errors.not_found", locale = "en"));
+    println!(
+        "errors.not_found (en):    {}",
+        t!("errors.not_found", locale = "en")
+    );
     println!("errors.not_found (zh-CN): {}", t!("errors.not_found"));
-    println!("navigation.home (ja):     {}", t!("navigation.home", locale = "ja"));
+    println!(
+        "navigation.home (ja):     {}",
+        t!("navigation.home", locale = "ja")
+    );
 
     println!("\n=== Interpolation ===");
-    println!("greeting (en):    {}", t!("greeting", locale = "en", name = "world"));
+    println!(
+        "greeting (en):    {}",
+        t!("greeting", locale = "en", name = "world")
+    );
     println!("greeting (zh-CN): {}", t!("greeting", name = "世界"));
-    println!("greeting (ja):    {}", t!("greeting", locale = "ja", name = "世界"));
+    println!(
+        "greeting (ja):    {}",
+        t!("greeting", locale = "ja", name = "世界")
+    );
 
     println!("\n=== Plural ===");
     println!("items (0): {}", t!("items", count = 0));

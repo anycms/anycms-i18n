@@ -11,9 +11,9 @@
 
 use std::sync::Arc;
 
-use axum::{extract::Path, routing::get, Router};
 use anycms_i18n::i18n;
 use anycms_i18n_axum::{I18nLayer, I18nRouterExt, Locale};
+use axum::{Router, extract::Path, routing::get};
 
 /// Demonstrates: t!() macro auto-detects locale from request context.
 async fn index(locale: Locale) -> String {

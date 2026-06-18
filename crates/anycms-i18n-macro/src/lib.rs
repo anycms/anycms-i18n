@@ -7,7 +7,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Ident, LitStr, Token};
+use syn::{Ident, LitStr, Token, parse_macro_input};
 
 // ---- Shared directory scanning ----
 
@@ -16,9 +16,11 @@ use syn::{parse_macro_input, Ident, LitStr, Token};
 ///
 /// Returns a `syn::Error` if the directory does not exist, cannot be read,
 /// or contains no `.toml` files.
-fn scan_toml_dir(dir_path: &str, span: proc_macro2::Span) -> Result<Vec<(String, std::path::PathBuf)>, syn::Error> {
-    let manifest_dir =
-        std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
+fn scan_toml_dir(
+    dir_path: &str,
+    span: proc_macro2::Span,
+) -> Result<Vec<(String, std::path::PathBuf)>, syn::Error> {
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
     let full_dir = std::path::Path::new(&manifest_dir).join(dir_path);
 
     if !full_dir.is_dir() {
@@ -53,10 +55,7 @@ fn scan_toml_dir(dir_path: &str, span: proc_macro2::Span) -> Result<Vec<(String,
             }
         }
         Err(e) => {
-            let msg = format!(
-                "failed to read directory `{}`: {e}",
-                full_dir.display()
-            );
+            let msg = format!("failed to read directory `{}`: {e}", full_dir.display());
             return Err(syn::Error::new(span, msg));
         }
     }
@@ -71,7 +70,9 @@ fn scan_toml_dir(dir_path: &str, span: proc_macro2::Span) -> Result<Vec<(String,
 }
 
 /// Generate the `include_str!` token pairs from scanned entries.
-fn generate_translation_pairs(entries: &[(String, std::path::PathBuf)]) -> Vec<proc_macro2::TokenStream> {
+fn generate_translation_pairs(
+    entries: &[(String, std::path::PathBuf)],
+) -> Vec<proc_macro2::TokenStream> {
     entries
         .iter()
         .map(|(locale, path)| {
@@ -180,7 +181,9 @@ impl Parse for I18nArgs {
                     other => {
                         return Err(syn::Error::new(
                             key.span(),
-                            format!("unknown flag `{other}`; expected `hot_reload` or `allow_override`"),
+                            format!(
+                                "unknown flag `{other}`; expected `hot_reload` or `allow_override`"
+                            ),
                         ));
                     }
                 }

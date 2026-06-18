@@ -73,6 +73,23 @@ impl SqlxBackend {
     ///
     /// This is the core constructor used by all database-specific loaders.
     /// You can also call this directly if you have translations from another source.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use anycms_i18n::Backend;
+    /// use anycms_i18n_sqlx::SqlxBackend;
+    ///
+    /// let backend = SqlxBackend::from_translations(vec![
+    ///     ("en".to_string(), "hello".to_string(), "Hello".to_string()),
+    ///     ("zh-CN".to_string(), "hello".to_string(), "你好".to_string()),
+    /// ]);
+    ///
+    /// assert_eq!(backend.get("en", "hello").as_deref(), Some("Hello"));
+    /// assert_eq!(backend.get("zh-CN", "hello").as_deref(), Some("你好"));
+    /// assert!(backend.has_locale("en"));
+    /// assert!(!backend.has_locale("ja"));
+    /// ```
     pub fn from_translations(
         translations: impl IntoIterator<Item = (String, String, String)>,
     ) -> Self {
@@ -97,10 +114,7 @@ impl SqlxBackend {
     ) {
         self.cache.clear();
         for (locale, key, value) in translations {
-            self.cache
-                .entry(locale)
-                .or_insert_with(HashMap::new)
-                .insert(key, value);
+            self.cache.entry(locale).or_default().insert(key, value);
         }
     }
 
@@ -111,12 +125,11 @@ impl SqlxBackend {
     /// Queries `SELECT locale, key, value FROM i18n_translations`.
     #[cfg(feature = "postgres")]
     pub async fn from_postgres(pool: &sqlx::PgPool) -> Result<Self, I18nError> {
-        let rows: Vec<(String, String, String)> = sqlx::query_as(
-            "SELECT locale, key, value FROM i18n_translations",
-        )
-        .fetch_all(pool)
-        .await
-        .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
+        let rows: Vec<(String, String, String)> =
+            sqlx::query_as("SELECT locale, key, value FROM i18n_translations")
+                .fetch_all(pool)
+                .await
+                .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
 
         Ok(Self::from_translations(rows))
     }
@@ -124,12 +137,11 @@ impl SqlxBackend {
     /// Reload translations from a PostgreSQL pool.
     #[cfg(feature = "postgres")]
     pub async fn reload_postgres(&self, pool: &sqlx::PgPool) -> Result<(), I18nError> {
-        let rows: Vec<(String, String, String)> = sqlx::query_as(
-            "SELECT locale, key, value FROM i18n_translations",
-        )
-        .fetch_all(pool)
-        .await
-        .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
+        let rows: Vec<(String, String, String)> =
+            sqlx::query_as("SELECT locale, key, value FROM i18n_translations")
+                .fetch_all(pool)
+                .await
+                .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
 
         self.reload_from_translations(rows);
         Ok(())
@@ -142,12 +154,11 @@ impl SqlxBackend {
     /// Queries `SELECT locale, key, value FROM i18n_translations`.
     #[cfg(feature = "mysql")]
     pub async fn from_mysql(pool: &sqlx::MySqlPool) -> Result<Self, I18nError> {
-        let rows: Vec<(String, String, String)> = sqlx::query_as(
-            "SELECT locale, key, value FROM i18n_translations",
-        )
-        .fetch_all(pool)
-        .await
-        .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
+        let rows: Vec<(String, String, String)> =
+            sqlx::query_as("SELECT locale, key, value FROM i18n_translations")
+                .fetch_all(pool)
+                .await
+                .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
 
         Ok(Self::from_translations(rows))
     }
@@ -155,12 +166,11 @@ impl SqlxBackend {
     /// Reload translations from a MySQL pool.
     #[cfg(feature = "mysql")]
     pub async fn reload_mysql(&self, pool: &sqlx::MySqlPool) -> Result<(), I18nError> {
-        let rows: Vec<(String, String, String)> = sqlx::query_as(
-            "SELECT locale, key, value FROM i18n_translations",
-        )
-        .fetch_all(pool)
-        .await
-        .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
+        let rows: Vec<(String, String, String)> =
+            sqlx::query_as("SELECT locale, key, value FROM i18n_translations")
+                .fetch_all(pool)
+                .await
+                .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
 
         self.reload_from_translations(rows);
         Ok(())
@@ -173,12 +183,11 @@ impl SqlxBackend {
     /// Queries `SELECT locale, key, value FROM i18n_translations`.
     #[cfg(feature = "sqlite")]
     pub async fn from_sqlite(pool: &sqlx::SqlitePool) -> Result<Self, I18nError> {
-        let rows: Vec<(String, String, String)> = sqlx::query_as(
-            "SELECT locale, key, value FROM i18n_translations",
-        )
-        .fetch_all(pool)
-        .await
-        .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
+        let rows: Vec<(String, String, String)> =
+            sqlx::query_as("SELECT locale, key, value FROM i18n_translations")
+                .fetch_all(pool)
+                .await
+                .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
 
         Ok(Self::from_translations(rows))
     }
@@ -186,12 +195,11 @@ impl SqlxBackend {
     /// Reload translations from a SQLite pool.
     #[cfg(feature = "sqlite")]
     pub async fn reload_sqlite(&self, pool: &sqlx::SqlitePool) -> Result<(), I18nError> {
-        let rows: Vec<(String, String, String)> = sqlx::query_as(
-            "SELECT locale, key, value FROM i18n_translations",
-        )
-        .fetch_all(pool)
-        .await
-        .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
+        let rows: Vec<(String, String, String)> =
+            sqlx::query_as("SELECT locale, key, value FROM i18n_translations")
+                .fetch_all(pool)
+                .await
+                .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
 
         self.reload_from_translations(rows);
         Ok(())
@@ -206,9 +214,7 @@ impl Default for SqlxBackend {
 
 impl Backend for SqlxBackend {
     fn get(&self, locale: &str, key: &str) -> Option<String> {
-        self.cache
-            .get(locale)
-            .and_then(|map| map.get(key).cloned())
+        self.cache.get(locale).and_then(|map| map.get(key).cloned())
     }
 
     fn available_locales(&self) -> Vec<String> {
@@ -217,6 +223,13 @@ impl Backend for SqlxBackend {
 
     fn has_locale(&self, locale: &str) -> bool {
         self.cache.contains_key(locale)
+    }
+
+    fn dump(&self, locale: &str) -> HashMap<String, String> {
+        self.cache
+            .get(locale)
+            .map(|m| m.clone())
+            .unwrap_or_default()
     }
 }
 
@@ -290,48 +303,36 @@ impl SqlxBackendBuilder {
 
     /// Build from a PostgreSQL pool.
     #[cfg(feature = "postgres")]
-    pub async fn build_postgres(
-        &self,
-        pool: &sqlx::PgPool,
-    ) -> Result<SqlxBackend, I18nError> {
+    pub async fn build_postgres(&self, pool: &sqlx::PgPool) -> Result<SqlxBackend, I18nError> {
         let sql = self.query();
-        let rows: Vec<(String, String, String)> =
-            sqlx::query_as(sql.as_str())
-                .fetch_all(pool)
-                .await
-                .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
+        let rows: Vec<(String, String, String)> = sqlx::query_as(sql.as_str())
+            .fetch_all(pool)
+            .await
+            .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
 
         Ok(SqlxBackend::from_translations(rows))
     }
 
     /// Build from a MySQL pool.
     #[cfg(feature = "mysql")]
-    pub async fn build_mysql(
-        &self,
-        pool: &sqlx::MySqlPool,
-    ) -> Result<SqlxBackend, I18nError> {
+    pub async fn build_mysql(&self, pool: &sqlx::MySqlPool) -> Result<SqlxBackend, I18nError> {
         let sql = self.query();
-        let rows: Vec<(String, String, String)> =
-            sqlx::query_as(sql.as_str())
-                .fetch_all(pool)
-                .await
-                .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
+        let rows: Vec<(String, String, String)> = sqlx::query_as(sql.as_str())
+            .fetch_all(pool)
+            .await
+            .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
 
         Ok(SqlxBackend::from_translations(rows))
     }
 
     /// Build from a SQLite pool.
     #[cfg(feature = "sqlite")]
-    pub async fn build_sqlite(
-        &self,
-        pool: &sqlx::SqlitePool,
-    ) -> Result<SqlxBackend, I18nError> {
+    pub async fn build_sqlite(&self, pool: &sqlx::SqlitePool) -> Result<SqlxBackend, I18nError> {
         let sql = self.query();
-        let rows: Vec<(String, String, String)> =
-            sqlx::query_as(sql.as_str())
-                .fetch_all(pool)
-                .await
-                .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
+        let rows: Vec<(String, String, String)> = sqlx::query_as(sql.as_str())
+            .fetch_all(pool)
+            .await
+            .map_err(|e| I18nError::DatabaseError(e.to_string()))?;
 
         Ok(SqlxBackend::from_translations(rows))
     }
@@ -378,14 +379,11 @@ mod tests {
 
     #[test]
     fn reload_clears_old_data() {
-        let backend = SqlxBackend::from_translations(vec![
-            ("en".into(), "hello".into(), "Hello".into()),
-        ]);
+        let backend =
+            SqlxBackend::from_translations(vec![("en".into(), "hello".into(), "Hello".into())]);
         assert_eq!(backend.get("en", "hello"), Some("Hello".into()));
 
-        backend.reload_from_translations(vec![
-            ("de".into(), "hello".into(), "Hallo".into()),
-        ]);
+        backend.reload_from_translations(vec![("de".into(), "hello".into(), "Hallo".into())]);
 
         assert_eq!(backend.get("en", "hello"), None);
         assert_eq!(backend.get("de", "hello"), Some("Hallo".into()));
@@ -412,5 +410,26 @@ mod tests {
             builder.query(),
             "SELECT lang AS locale, msg_key AS key, msg_val AS value FROM my_table"
         );
+    }
+
+    #[test]
+    fn dump_returns_all_keys_for_locale() {
+        let backend = SqlxBackend::from_translations(vec![
+            ("en".into(), "hello".into(), "Hello".into()),
+            ("en".into(), "world".into(), "World".into()),
+            ("zh-CN".into(), "hello".into(), "你好".into()),
+        ]);
+
+        let en = backend.dump("en");
+        assert_eq!(en.len(), 2);
+        assert_eq!(en.get("hello").unwrap(), "Hello");
+        assert_eq!(en.get("world").unwrap(), "World");
+
+        let zh = backend.dump("zh-CN");
+        assert_eq!(zh.len(), 1);
+        assert_eq!(zh.get("hello").unwrap(), "你好");
+
+        // Missing locale -> empty map.
+        assert!(backend.dump("ja").is_empty());
     }
 }

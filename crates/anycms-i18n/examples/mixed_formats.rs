@@ -4,7 +4,7 @@
 //!
 //! Run: `cargo run -p anycms-i18n --example mixed_formats --features "all-backends,init"`
 
-use anycms_i18n::{set_global, t, I18nBuilder};
+use anycms_i18n::{I18nBuilder, set_global, t};
 
 fn main() {
     let i18n = I18nBuilder::new()

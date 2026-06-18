@@ -81,7 +81,10 @@ fn main() {
 
     // "welcome" comes from backend1 (override)
     println!("chained welcome (en):    {}", i18n_chained.t("welcome"));
-    println!("chained welcome (zh-CN): {}", i18n_chained.t_with_locale("welcome", "zh-CN"));
+    println!(
+        "chained welcome (zh-CN): {}",
+        i18n_chained.t_with_locale("welcome", "zh-CN")
+    );
 
     // "errors.not_found" falls through to backend2
     println!(
@@ -95,7 +98,8 @@ fn main() {
 
     let custom = {
         let b = TomlBackend::new();
-        b.add_locale_from_str("en", r#"app.title = "My Custom App""#).unwrap();
+        b.add_locale_from_str("en", r#"app.title = "My Custom App""#)
+            .unwrap();
         Arc::new(b) as Arc<dyn anycms_i18n::Backend>
     };
 
@@ -103,10 +107,7 @@ fn main() {
         .default_locale("en")
         .fallback_locale("en")
         .add_backend(custom)
-        .embedded_translations(&[(
-            "en",
-            include_str!("../../../locales/en.toml"),
-        )])
+        .embedded_translations(&[("en", include_str!("../../../locales/en.toml"))])
         .expect("failed to load embedded translations")
         .build()
         .expect("failed to build I18n");

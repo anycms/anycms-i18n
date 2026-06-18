@@ -1,5 +1,6 @@
 //! Core traits and the I18n runtime.
 
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::interpolate::interpolate;
@@ -19,6 +20,12 @@ pub trait Backend: Send + Sync + 'static {
 
     /// Check if a locale is available.
     fn has_locale(&self, locale: &str) -> bool;
+
+    /// Return all `key -> value` translations for the given locale (cloned copy).
+    ///
+    /// Returns an empty map if the locale does not exist. Useful for exporting
+    /// a full locale (e.g. for `GET /api/i18n/{locale}`).
+    fn dump(&self, locale: &str) -> HashMap<String, String>;
 }
 
 /// Trait for backends that support runtime reloading (hot-reload).
@@ -84,7 +91,13 @@ impl I18n {
     }
 
     /// Translate a key with interpolation and plural support.
-    pub fn t_with_count(&self, key: &str, locale: &str, count: i64, args: &[(&str, &str)]) -> String {
+    pub fn t_with_count(
+        &self,
+        key: &str,
+        locale: &str,
+        count: i64,
+        args: &[(&str, &str)],
+    ) -> String {
         self.translate(key, locale, args, Some(count))
     }
 
@@ -120,10 +133,8 @@ impl I18n {
 
         for loc in &chain {
             if let Some(template) = self.backend.get(loc, &lookup_key) {
-                let mut all_args: Vec<(&str, String)> = args
-                    .iter()
-                    .map(|(k, v)| (*k, v.to_string()))
-                    .collect();
+                let mut all_args: Vec<(&str, String)> =
+                    args.iter().map(|(k, v)| (*k, v.to_string())).collect();
                 if let Some(c) = count {
                     all_args.push(("count", c.to_string()));
                 }

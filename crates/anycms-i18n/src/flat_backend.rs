@@ -12,6 +12,13 @@ use dashmap::DashMap;
 use crate::core::Backend;
 use crate::error::I18nError;
 
+/// Type alias for a parser that converts raw file content into a flat
+/// `key → value` map. Passed to [`FlatBackend::load_dir`] and friends.
+///
+/// The closure receives `(locale, file_content)` and returns the parsed
+/// messages or an error.
+pub type ParseFn<'a> = &'a dyn Fn(&str, &str) -> Result<HashMap<String, String>, I18nError>;
+
 /// Generic in-memory translation storage.
 ///
 /// Stores translations as `locale → (flat_key → translated_string)`.
@@ -54,7 +61,7 @@ impl FlatBackend {
         &self,
         path: impl AsRef<Path>,
         extension: &str,
-        parse_fn: &dyn Fn(&str, &str) -> Result<HashMap<String, String>, I18nError>,
+        parse_fn: ParseFn<'_>,
     ) -> Result<(), I18nError> {
         let dir = path.as_ref();
 
@@ -79,7 +86,7 @@ impl FlatBackend {
         &self,
         path: impl AsRef<Path>,
         extension: &str,
-        parse_fn: &dyn Fn(&str, &str) -> Result<HashMap<String, String>, I18nError>,
+        parse_fn: ParseFn<'_>,
     ) -> Result<(), I18nError> {
         let dir = path.as_ref();
 
@@ -99,9 +106,8 @@ impl FlatBackend {
         &self,
         dir: &Path,
         extension: &str,
-        parse_fn: &dyn Fn(&str, &str) -> Result<HashMap<String, String>, I18nError>,
+        parse_fn: ParseFn<'_>,
     ) -> Result<(), I18nError> {
-
         for entry in std::fs::read_dir(dir).map_err(|e| I18nError::IoError {
             path: dir.to_path_buf(),
             source: e,
@@ -153,6 +159,16 @@ impl FlatBackend {
     pub fn contains_locale(&self, locale: &str) -> bool {
         self.translations.contains_key(locale)
     }
+
+    /// Return all `key -> value` translations for the given locale (cloned copy).
+    ///
+    /// Returns an empty map if the locale does not exist.
+    pub fn dump(&self, locale: &str) -> HashMap<String, String> {
+        self.translations
+            .get(locale)
+            .map(|m| m.clone())
+            .unwrap_or_default()
+    }
 }
 
 impl Backend for FlatBackend {
@@ -166,6 +182,10 @@ impl Backend for FlatBackend {
 
     fn has_locale(&self, locale: &str) -> bool {
         self.contains_locale(locale)
+    }
+
+    fn dump(&self, locale: &str) -> HashMap<String, String> {
+        FlatBackend::dump(self, locale)
     }
 }
 
@@ -188,9 +208,12 @@ pub fn flatten_json(value: &serde_json::Value, prefix: &str, out: &mut HashMap<S
         }
         serde_json::Value::Object(map) => {
             // Check if this is a plural group
-            let is_plural = map
-                .keys()
-                .any(|k| matches!(k.as_str(), "zero" | "one" | "two" | "few" | "many" | "other"));
+            let is_plural = map.keys().any(|k| {
+                matches!(
+                    k.as_str(),
+                    "zero" | "one" | "two" | "few" | "many" | "other"
+                )
+            });
 
             if is_plural && !prefix.is_empty() {
                 for (cat, val) in map {
@@ -209,10 +232,8 @@ pub fn flatten_json(value: &serde_json::Value, prefix: &str, out: &mut HashMap<S
                 }
             }
         }
-        serde_json::Value::Number(n) => {
-            if !prefix.is_empty() {
-                out.insert(prefix.to_string(), n.to_string());
-            }
+        serde_json::Value::Number(n) if !prefix.is_empty() => {
+            out.insert(prefix.to_string(), n.to_string());
         }
         // Skip arrays, bools, null
         _ => {}

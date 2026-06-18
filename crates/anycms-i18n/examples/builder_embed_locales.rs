@@ -16,7 +16,7 @@
 //! vs the automatic approach here:
 //!   .embedded_translations(embed_locales!("../../locales"))
 
-use anycms_i18n::{embed_locales, I18nBuilder};
+use anycms_i18n::{I18nBuilder, embed_locales};
 
 fn main() {
     println!("=== embed_locales! + I18nBuilder ===\n");
@@ -41,8 +41,14 @@ fn main() {
     println!();
 
     println!("welcome (default/zh-CN): {}", i18n.t("welcome"));
-    println!("welcome (en):            {}", i18n.t_with_locale("welcome", "en"));
-    println!("welcome (ja):            {}", i18n.t_with_locale("welcome", "ja"));
+    println!(
+        "welcome (en):            {}",
+        i18n.t_with_locale("welcome", "en")
+    );
+    println!(
+        "welcome (ja):            {}",
+        i18n.t_with_locale("welcome", "ja")
+    );
 
     println!("\n=== Interpolation ===");
     println!(
@@ -61,7 +67,10 @@ fn main() {
 
     println!("\n=== Fallback Chain ===");
     // ja has no items.zero/one — falls back to items.other
-    println!("items (1, ja): {}", i18n.t_with_count("items", "ja", 1, &[]));
+    println!(
+        "items (1, ja): {}",
+        i18n.t_with_count("items", "ja", 1, &[])
+    );
     // nonexistent key → returns the key itself
     println!("nonexistent: {}", i18n.t("nonexistent.key"));
 }

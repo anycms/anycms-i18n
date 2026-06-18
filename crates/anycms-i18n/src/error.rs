@@ -11,10 +11,7 @@ pub enum I18nError {
 
     /// Translation key not found
     #[error("translation key not found: {key} (locale: {locale})")]
-    TranslationNotFound {
-        key: String,
-        locale: String,
-    },
+    TranslationNotFound { key: String, locale: String },
 
     /// Failed to parse TOML translation file
     #[cfg(feature = "toml-backend")]
@@ -57,10 +54,7 @@ pub enum I18nError {
 
     /// Failed to interpolate variables in translation string
     #[error("interpolation error for key '{key}': missing variable '{var}'")]
-    InterpolationError {
-        key: String,
-        var: String,
-    },
+    InterpolationError { key: String, var: String },
 
     /// Configuration error
     #[error("i18n configuration error: {0}")]

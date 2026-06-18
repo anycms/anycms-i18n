@@ -19,7 +19,12 @@ fn main() {
     // Compile-embed all .toml files from ../../locales,
     // then try loading from a "locales/" runtime directory (non-fatal if missing).
     // Runtime keys take priority over compiled keys.
-    i18n!("../../locales", default = "zh-CN", fallback = "en", allow_override);
+    i18n!(
+        "../../locales",
+        default = "zh-CN",
+        fallback = "en",
+        allow_override
+    );
 
     println!("=== i18n! with allow_override ===");
     println!("(if locales/ dir exists, runtime files override compiled defaults)\n");
@@ -29,11 +34,17 @@ fn main() {
     println!("welcome (ja):            {}", t!("welcome", locale = "ja"));
 
     println!("\n=== Nested Keys ===");
-    println!("errors.not_found (en):    {}", t!("errors.not_found", locale = "en"));
+    println!(
+        "errors.not_found (en):    {}",
+        t!("errors.not_found", locale = "en")
+    );
     println!("errors.not_found (zh-CN): {}", t!("errors.not_found"));
 
     println!("\n=== Interpolation ===");
-    println!("greeting (en):    {}", t!("greeting", locale = "en", name = "world"));
+    println!(
+        "greeting (en):    {}",
+        t!("greeting", locale = "en", name = "world")
+    );
     println!("greeting (zh-CN): {}", t!("greeting", name = "世界"));
 
     println!("\n=== Available Locales ===");
